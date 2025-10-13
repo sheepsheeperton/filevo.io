@@ -20,3 +20,4 @@ export function CardDescription({ children, className }: PropsWithChildren<{ cla
 export function CardContent({ children, className }: PropsWithChildren<{ className?: string }>) {
   return <div className={clsx("p-5 pt-0", className)}>{children}</div>;
 }
+

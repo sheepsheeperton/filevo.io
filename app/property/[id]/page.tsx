@@ -2,11 +2,12 @@ import { supabaseServer } from '@/lib/supabase/server';
 import { requireUser } from '@/lib/auth';
 import { notFound } from 'next/navigation';
 
-export default async function PropertyPage({ params }: { params: { id: string } }) {
+export default async function PropertyPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   await requireUser();
   const db = supabaseServer();
 
-  const { data: property } = await db.from('properties').select('id, name, address, created_at').eq('id', params.id).single();
+  const { data: property } = await db.from('properties').select('id, name, address, created_at').eq('id', id).single();
   if (!property) return notFound();
 
   const { data: reqs } = await db

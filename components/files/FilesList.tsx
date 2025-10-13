@@ -22,7 +22,6 @@ interface FileData {
 }
 
 export function FilesList({ files }: { files: FileData[]; propertyId: string }) {
-  const [filter, setFilter] = useState('all');
   const [downloading, setDownloading] = useState<string | null>(null);
 
   // Group files by request
@@ -68,13 +67,6 @@ export function FilesList({ files }: { files: FileData[]; propertyId: string }) 
   return (
     <div className="space-y-6">
       <div className="flex gap-2">
-        <Button
-          size="sm"
-          variant={filter === 'all' ? 'primary' : 'ghost'}
-          onClick={() => setFilter('all')}
-        >
-          All Files
-        </Button>
         {Object.keys(filesByRequest).length > 0 && (
           <span className="text-sm text-fg-muted self-center">
             {Object.keys(filesByRequest).length} {Object.keys(filesByRequest).length === 1 ? 'request' : 'requests'}

@@ -16,14 +16,26 @@ export async function GET(req: NextRequest) {
   const db = await supabaseServer();
   const url = new URL(req.url);
   const propertyId = url.searchParams.get('propertyId');
+  const startDate = url.searchParams.get('startDate');
+  const endDate = url.searchParams.get('endDate');
+  
   if (!propertyId) return new Response('Missing propertyId', { status: 400 });
 
-  const { data: rows, error } = await db
+  let query = db
     .from('files')
     .select(
-      'storage_path, request_item_id, request_item:request_items(request_id), request:requests(property_id)'
-    )
-    .returns<FileRow[]>();
+      'storage_path, request_item_id, uploaded_at, request_item:request_items(request_id), request:requests(property_id)'
+    );
+
+  // Apply date filters if provided
+  if (startDate) {
+    query = query.gte('uploaded_at', startDate);
+  }
+  if (endDate) {
+    query = query.lte('uploaded_at', endDate);
+  }
+
+  const { data: rows, error } = await query.returns<FileRow[]>();
 
   if (error) return new Response(error.message, { status: 500 });
 

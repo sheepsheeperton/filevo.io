@@ -6,10 +6,9 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import clsx from "clsx";
 
 const nav = [
-  { href: "/app/dashboard", label: "Dashboard" },
-  { href: "/projects", label: "Projects" },
-  { href: "/documents", label: "Documents" },
-  { href: "/receipts", label: "Receipts" },
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/app/properties", label: "Properties" },
+  { href: "/app/activity", label: "Activity" },
   { href: "/sandbox", label: "UI Sandbox" },
 ];
 

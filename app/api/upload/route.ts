@@ -1,7 +1,7 @@
 import { supabaseServer } from '@/lib/supabase/server';
 
 export async function POST(req: Request) {
-  const db = supabaseServer();
+  const db = await supabaseServer();
   const form = await req.formData();
   const file = form.get('file') as File | null;
   const itemId = form.get('itemId') as string;

@@ -3,7 +3,7 @@ import UploadForm from './upload-form';
 
 export default async function PublicUploadPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
-  const db = supabaseServer();
+  const db = await supabaseServer();
   const { data: item } = await db
     .from('request_items')
     .select('id, tag, request_id, status')

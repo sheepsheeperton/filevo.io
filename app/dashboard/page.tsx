@@ -3,7 +3,7 @@ import { requireUser } from '@/lib/auth';
 
 export default async function DashboardPage() {
   await requireUser();
-  const db = supabaseServer();
+  const db = await supabaseServer();
 
   const { data: properties } = await db
     .from('properties')

@@ -13,7 +13,7 @@ type FileRow = {
 };
 
 export async function GET(req: NextRequest) {
-  const db = supabaseServer();
+  const db = await supabaseServer();
   const url = new URL(req.url);
   const propertyId = url.searchParams.get('propertyId');
   if (!propertyId) return new Response('Missing propertyId', { status: 400 });

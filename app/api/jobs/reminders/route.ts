@@ -2,7 +2,7 @@ import { supabaseServer } from '@/lib/supabase/server';
 import { sendRequestEmail } from '@/lib/email';
 
 export async function GET() {
-  const db = supabaseServer();
+  const db = await supabaseServer();
   const now = new Date();
   const tomorrow = new Date(now.getTime() + 24*60*60*1000).toISOString();
 

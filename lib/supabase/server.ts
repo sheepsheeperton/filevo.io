@@ -8,3 +8,8 @@ export function supabaseServer() {
     { cookies }
   );
 }
+
+// Back-compat alias for files that import { createClient } from '@/lib/supabase/server'
+export function createClient() {
+  return supabaseServer();
+}

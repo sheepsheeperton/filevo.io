@@ -17,8 +17,8 @@ interface FileData {
       id: string;
       title: string;
       property_id: string;
-    };
-  };
+    }[];
+  }[];
 }
 
 export function FilesList({ files }: { files: FileData[]; propertyId: string }) {
@@ -26,14 +26,16 @@ export function FilesList({ files }: { files: FileData[]; propertyId: string }) 
 
   // Group files by request
   const filesByRequest = files.reduce((acc, file) => {
-    const requestId = Array.isArray(file.request_item.request) 
-      ? file.request_item.request[0].id 
-      : file.request_item.request.id;
+    const item = file.request_item[0];
+    if (!item) return acc;
+    
+    const request = item.request[0];
+    if (!request) return acc;
+    
+    const requestId = request.id;
     if (!acc[requestId]) {
       acc[requestId] = {
-        title: Array.isArray(file.request_item.request) 
-          ? file.request_item.request[0].title 
-          : file.request_item.request.title,
+        title: request.title,
         files: [],
       };
     }
@@ -81,7 +83,8 @@ export function FilesList({ files }: { files: FileData[]; propertyId: string }) 
               <h3 className="font-medium mb-3">{title}</h3>
               <div className="space-y-2">
                 {requestFiles.map((file) => {
-                  const item = Array.isArray(file.request_item) ? file.request_item[0] : file.request_item;
+                  const item = file.request_item[0];
+                  if (!item) return null;
                   return (
                     <div
                       key={file.id}

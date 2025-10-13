@@ -1,6 +1,6 @@
 import AppShell from "@/components/layout/AppShell";
-import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Stat } from "@/components/ui/Stat";
 
 const Swatch = ({ name, varName }: { name: string; varName: string }) => (

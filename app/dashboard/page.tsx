@@ -1,9 +1,9 @@
 import { supabaseServer } from '@/lib/supabase/server';
 import { requireUser } from '@/lib/auth';
 import AppShell from '@/components/layout/AppShell';
-import { Card, CardContent } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Stat } from '@/components/ui/Stat';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 export default async function DashboardPage() {
   await requireUser();

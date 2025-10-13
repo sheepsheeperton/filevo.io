@@ -92,7 +92,7 @@ export default function SignInPage() {
                 </Button>
 
                 <p className="text-xs text-fg-subtle text-center">
-                  No password required. We'll email you a secure sign-in link.
+                  No password required. We&apos;ll email you a secure sign-in link.
                 </p>
               </form>
             )}

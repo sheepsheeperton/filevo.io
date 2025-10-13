@@ -16,7 +16,7 @@ interface Request {
   request_items: RequestItem[];
 }
 
-export function RequestCard({ request, propertyId }: { request: Request; propertyId: string }) {
+export function RequestCard({ request }: { request: Request; propertyId: string }) {
   const pending = request.request_items.filter((i) => i.status === 'pending').length;
   const received = request.request_items.filter((i) => i.status === 'received').length;
   const total = request.request_items.length;

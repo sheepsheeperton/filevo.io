@@ -10,7 +10,6 @@ import { ulid } from 'ulid';
  */
 
 const BUCKET_NAME = 'documents';
-const UPLOAD_EXPIRES_IN = 3600; // 1 hour
 const DOWNLOAD_EXPIRES_IN = 3600; // 1 hour
 
 export interface SignedUploadUrlParams {

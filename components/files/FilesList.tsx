@@ -21,7 +21,7 @@ interface FileData {
   };
 }
 
-export function FilesList({ files, propertyId }: { files: FileData[]; propertyId: string }) {
+export function FilesList({ files }: { files: FileData[]; propertyId: string }) {
   const [filter, setFilter] = useState('all');
   const [downloading, setDownloading] = useState<string | null>(null);
 
@@ -42,7 +42,7 @@ export function FilesList({ files, propertyId }: { files: FileData[]; propertyId
     return acc;
   }, {} as Record<string, { title: string; files: FileData[] }>);
 
-  const handleDownload = async (fileId: string, storagePath: string, fileName: string) => {
+  const handleDownload = async (fileId: string, storagePath: string) => {
     setDownloading(fileId);
     try {
       const res = await fetch('/api/files/download', {
@@ -119,7 +119,7 @@ export function FilesList({ files, propertyId }: { files: FileData[]; propertyId
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => handleDownload(file.id, file.storage_path, file.file_name)}
+                        onClick={() => handleDownload(file.id, file.storage_path)}
                         disabled={downloading === file.id}
                       >
                         {downloading === file.id ? 'Loading...' : 'Download'}

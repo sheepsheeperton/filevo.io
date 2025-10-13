@@ -1,7 +1,6 @@
 import { requireUser } from '@/lib/auth';
 import { supabaseServer } from '@/lib/supabase/server';
 import AppShell from '@/components/layout/AppShell';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import { PropertyForm } from '@/components/properties/PropertyForm';

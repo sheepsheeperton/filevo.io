@@ -29,7 +29,7 @@ export function PropertyForm() {
       } else {
         setError(result.error || 'Failed to create property');
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred');
     } finally {
       setIsLoading(false);

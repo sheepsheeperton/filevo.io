@@ -64,7 +64,7 @@ export function RequestForm({ propertyId }: { propertyId: string }) {
       } else {
         setError(result.error || 'Failed to create request');
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred');
     } finally {
       setIsLoading(false);

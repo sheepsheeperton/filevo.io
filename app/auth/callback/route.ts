@@ -34,6 +34,6 @@ export async function GET(request: Request) {
       `${origin}/auth/sign-in?error=${encodeURIComponent(error.message)}`
     );
   }
-  return NextResponse.redirect(`${origin}/app/dashboard`);
+  return NextResponse.redirect(`${origin}/dashboard`);
 }
 

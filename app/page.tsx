@@ -1,5 +1,18 @@
 import Logo from '@/components/brand/Logo';
-export default function Home() {
+import { redirect } from 'next/navigation';
+
+export default function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ code?: string }>;
+}) {
+  const params = await searchParams;
+  
+  // If there's a code parameter, redirect to auth callback
+  if (params.code) {
+    redirect(`/auth/callback?code=${params.code}&next=/dashboard`);
+  }
+
   return (
     <main className="p-8">
       <div className="flex items-center justify-between">

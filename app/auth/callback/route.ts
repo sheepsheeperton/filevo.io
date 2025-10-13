@@ -8,6 +8,8 @@ export const runtime = "nodejs";
 export async function GET(request: Request) {
   const { origin, searchParams } = new URL(request.url);
   const code = searchParams.get("code");
+  const next = searchParams.get("next") || "/dashboard";
+  
   if (!code) return NextResponse.redirect(`${origin}/auth/sign-in`);
 
   // Next 15: cookies() is async
@@ -34,6 +36,6 @@ export async function GET(request: Request) {
       `${origin}/auth/sign-in?error=${encodeURIComponent(error.message)}`
     );
   }
-  return NextResponse.redirect(`${origin}/dashboard`);
+  return NextResponse.redirect(`${origin}${next}`);
 }
 

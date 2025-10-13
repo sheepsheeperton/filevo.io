@@ -1,3 +1,77 @@
+/* === Design Tokens ======================================================= */
+:root {
+  /* Surfaces */
+  --bg: 222 28% 7%;
+  --surface: 219 22% 10%;
+  --elev: 223 22% 13%;
+  --border: 225 19% 21%;
+
+  /* Text */
+  --fg: 220 35% 94%;
+  --fg-muted: 220 16% 70%;
+  --fg-subtle: 220 12% 55%;
+
+  /* Brand & states */
+  --brand: 18 100% 62%;
+  --brand-600: 18 92% 56%;
+  --brand-700: 18 92% 45%;
+  --success: 142 70% 50%;
+  --warning: 42 95% 55%;
+  --danger: 0 78% 60%;
+  --info: 205 90% 60%;
+
+  /* UI */
+  --ring: var(--brand);
+  --radius: 16px;
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+
+  /* Charts */
+  --chart-1: var(--brand);
+  --chart-2: 10 90% 60%;
+  --chart-3: 40 95% 55%;
+  --chart-4: 320 80% 60%;
+  --chart-5: 205 90% 60%;
+}
+.light {
+  --bg: 220 25% 98%;
+  --surface: 0 0% 100%;
+  --elev: 220 25% 96%;
+  --border: 220 16% 90%;
+  --fg: 222 29% 10%;
+  --fg-muted: 222 12% 35%;
+  --fg-subtle: 222 10% 45%;
+  /* Use darker brand on light theme for better text contrast */
+  --brand: 18 92% 50%;
+  --brand-600: 18 92% 42%;
+  --brand-700: 18 92% 35%;
+  --ring: var(--brand);
+}
+
+/* Base */
+html, body { background-color: hsl(var(--bg)); color: hsl(var(--fg)); }
+* { border-color: hsl(var(--border)); }
+
+/* Reset */
 * { box-sizing: border-box }
-html, body { margin: 0; padding: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial }
+html, body { margin: 0; padding: 0; }
 a { color: inherit; }
+
+@layer base {
+  :root { 
+    --font-inter: "Inter", ui-sans-serif, system-ui; 
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular; 
+  }
+  .font-sans { font-family: var(--font-inter); }
+  .font-mono { font-family: var(--font-mono); }
+  
+  /* Accessibility - Focus States */
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+}

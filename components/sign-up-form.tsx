@@ -40,16 +40,34 @@ export function SignUpForm({
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/protected`,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
-      if (error) throw error;
-      router.push("/auth/sign-up-success");
+      
+      console.log("Sign up response:", { data, error });
+      
+      if (error) {
+        console.error("Sign up error:", error);
+        throw error;
+      }
+      
+      // Check if user was created and needs email confirmation
+      if (data.user && !data.user.email_confirmed_at) {
+        // User needs to confirm email
+        router.push("/auth/sign-up-success");
+      } else if (data.user && data.session) {
+        // User is immediately signed in (email confirmation disabled)
+        router.push("/dashboard");
+      } else {
+        // Fallback
+        router.push("/auth/sign-up-success");
+      }
     } catch (error: unknown) {
+      console.error("Sign up error:", error);
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setIsLoading(false);
@@ -102,7 +120,18 @@ export function SignUpForm({
                 />
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isLoading || !email || !password || !repeatPassword}
+                onClick={(e) => {
+                  console.log("Sign up button clicked", { email, password, repeatPassword });
+                  // Form submission should handle this, but this is a backup
+                  if (e.defaultPrevented === false) {
+                    console.log("Form submission not prevented, calling handleSignUp");
+                  }
+                }}
+              >
                 {isLoading ? "Creating an account..." : "Sign up"}
               </Button>
             </div>

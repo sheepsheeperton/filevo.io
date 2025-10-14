@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function SignUpForm({
   className,
@@ -26,6 +26,23 @@ export function SignUpForm({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  // Debug: Log when component mounts
+  useEffect(() => {
+    console.log("SignUpForm component mounted successfully");
+    console.log("Current state:", { email, password, repeatPassword, isLoading, error });
+    
+    // Add global error handler
+    const handleError = (e: ErrorEvent) => {
+      console.error("Global JavaScript error:", e.error);
+    };
+    
+    window.addEventListener('error', handleError);
+    
+    return () => {
+      window.removeEventListener('error', handleError);
+    };
+  }, []);
 
   const handleSignUp = async (e: React.FormEvent) => {
     console.log("handleSignUp called", e);
@@ -127,10 +144,25 @@ export function SignUpForm({
               {/* Test button to verify button clicks work */}
               <button 
                 type="button"
-                onClick={() => console.log("TEST BUTTON CLICKED - Button clicks work!")}
+                onClick={() => {
+                  console.log("TEST BUTTON CLICKED - Button clicks work!");
+                  alert("Test button works! Check console for details.");
+                }}
                 className="w-full bg-red-500 text-white p-2 rounded mb-2"
               >
-                TEST BUTTON (Check Console)
+                TEST BUTTON (Should show alert)
+              </button>
+              
+              {/* Simple test without any dependencies */}
+              <button 
+                type="button"
+                onClick={() => {
+                  console.log("SIMPLE TEST CLICKED");
+                  setError("Simple test button works! Form state is functional.");
+                }}
+                className="w-full bg-green-500 text-white p-2 rounded mb-2"
+              >
+                SIMPLE TEST (Should show error message)
               </button>
               
               <Button 

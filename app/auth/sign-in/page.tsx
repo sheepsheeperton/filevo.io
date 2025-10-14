@@ -21,10 +21,12 @@ export default function SignInPage() {
     setError(null);
     setIsLoading(true);
     
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+    
     const { error: authError } = await supabase.auth.signInWithOtp({ 
       email, 
       options: { 
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/confirm?next=/dashboard`
+        emailRedirectTo: `${baseUrl}/auth/confirm?next=/dashboard`
       }
     });
     

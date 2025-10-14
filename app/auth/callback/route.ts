@@ -32,10 +32,16 @@ export async function GET(request: Request) {
 
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
+    console.error('Auth callback error:', error);
     return NextResponse.redirect(
       `${origin}/auth/sign-in?error=${encodeURIComponent(error.message)}`
     );
   }
-  return NextResponse.redirect(`${origin}${next}`);
+  
+  // Ensure we redirect to the correct path
+  const redirectUrl = `${origin}${next}`;
+  console.log('Auth callback success, redirecting to:', redirectUrl);
+  
+  return NextResponse.redirect(redirectUrl);
 }
 

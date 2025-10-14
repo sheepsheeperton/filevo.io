@@ -3,11 +3,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Logo from "@/components/brand/Logo";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { LogoutButton } from "@/components/logout-button";
 import clsx from "clsx";
 
 const nav = [
   { href: "/dashboard", label: "Dashboard" },
-  { href: "/properties", label: "Properties" },
+  { href: "/app/properties", label: "Properties" },
   { href: "/app/activity", label: "Activity" },
   { href: "/sandbox", label: "UI Sandbox" },
 ];
@@ -40,9 +41,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             })}
           </ul>
         </nav>
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-fg-subtle">Theme</span>
-          <ThemeToggle />
+        <div className="space-y-3">
+          <LogoutButton />
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-fg-subtle">Theme</span>
+            <ThemeToggle />
+          </div>
         </div>
       </aside>
 

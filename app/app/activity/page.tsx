@@ -15,10 +15,10 @@ export default async function ActivityPage() {
 
   return (
     <AppShell>
-      <div className="max-w-6xl">
+      <div className="max-w-6xl space-y-8">
         <div>
           <h1 className="text-3xl font-semibold">Activity Log</h1>
-          <p className="text-fg-muted mt-1">Recent actions and events</p>
+          <p className="text-fg-muted mt-2">Complete timeline of property changes, document uploads, and request updates</p>
         </div>
 
         <ActivityList activities={activities || []} />

@@ -20,11 +20,11 @@ export default async function PropertiesPage() {
 
   return (
     <AppShell>
-      <div className="max-w-6xl">
+      <div className="max-w-6xl space-y-8">
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-3xl font-semibold">Properties</h1>
-            <p className="text-fg-muted mt-1">Manage your properties and document requests</p>
+            <p className="text-fg-muted mt-2">Create and manage properties to organize your document requests</p>
           </div>
           <PropertyForm />
         </div>
@@ -38,7 +38,7 @@ export default async function PropertiesPage() {
                 className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:hsl(var(--ring))] focus-visible:ring-offset-2 rounded-2xl"
               >
                 <Card className="hover:bg-elev transition-colors cursor-pointer h-full">
-                  <CardContent className="py-4">
+                  <CardContent>
                     <div className="font-medium text-lg">{property.name}</div>
                     <div className="text-sm text-fg-muted mt-2">
                       {property.address || 'No address specified'}
@@ -52,9 +52,9 @@ export default async function PropertiesPage() {
             ))}
           </div>
         ) : (
-          <Card className="py-12">
-            <CardContent>
-              <div className="text-center space-y-4">
+          <Card>
+            <CardContent className="py-16">
+              <div className="text-center space-y-6">
                 <div className="text-fg-muted">
                   <svg
                     className="mx-auto h-12 w-12 text-fg-subtle"
@@ -72,8 +72,8 @@ export default async function PropertiesPage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-medium">No properties yet</h3>
-                  <p className="text-sm text-fg-muted mt-1">
-                    Get started by creating your first property
+                  <p className="text-sm text-fg-muted mt-2 max-w-md mx-auto">
+                    Properties help you organize document requests for different locations or projects. Create your first property to get started.
                   </p>
                 </div>
                 <PropertyForm />

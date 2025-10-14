@@ -10,7 +10,6 @@ const nav = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/app/properties", label: "Properties" },
   { href: "/app/activity", label: "Activity" },
-  { href: "/sandbox", label: "UI Sandbox" },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {

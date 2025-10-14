@@ -62,10 +62,28 @@ const getActivityColor = (action: string) => {
 export function ActivityList({ activities }: { activities: Activity[] }) {
   if (!activities.length) {
     return (
-      <Card className="py-12">
-        <CardContent>
-          <div className="text-center text-fg-muted">
-            <p>No activity yet</p>
+      <Card>
+        <CardContent className="py-16">
+          <div className="text-center space-y-4">
+            <svg
+              className="mx-auto h-12 w-12 text-fg-subtle"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
+            </svg>
+            <div>
+              <h3 className="text-lg font-medium text-fg-muted">No activity yet</h3>
+              <p className="text-sm text-fg-muted mt-2 max-w-md mx-auto">
+                Activity will appear here as you create properties, send requests, and receive documents
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -74,7 +92,7 @@ export function ActivityList({ activities }: { activities: Activity[] }) {
 
   return (
     <Card>
-      <CardContent className="py-4">
+      <CardContent>
         <div className="space-y-3">
           {activities.map((activity) => (
             <div

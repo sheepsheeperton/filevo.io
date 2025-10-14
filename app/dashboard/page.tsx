@@ -79,11 +79,11 @@ export default async function DashboardPage() {
 
   return (
     <AppShell>
-      <div className="max-w-6xl">
+      <div className="max-w-6xl space-y-8">
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-3xl font-semibold">Dashboard</h1>
-            <p className="text-fg-muted mt-1">Manage your properties and requests</p>
+            <p className="text-fg-muted mt-2">Track your properties, document requests, and time savings at a glance</p>
           </div>
           <div className="flex gap-2">
             <Link href="/app/activity">
@@ -95,28 +95,32 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Stat 
             label="Projects Completed" 
             value={String(completedRequests)} 
             hint={`${totalProperties} ${totalProperties === 1 ? 'property' : 'properties'} total`}
+            description="Document requests where all items have been received"
           />
           <Stat 
             label="In Progress" 
             value={String(inProgressRequests)} 
-            hint={inProgressRequests > 0 ? `${inProgressRequests} ${inProgressRequests === 1 ? 'request' : 'requests'} pending` : undefined}
+            hint={inProgressRequests > 0 ? `${inProgressRequests} ${inProgressRequests === 1 ? 'request' : 'requests'} pending` : 'All caught up'}
+            description="Active requests with at least one pending item"
           />
           <Stat 
             label="Time Saved" 
             value={`${timeSaved} hrs`} 
-            hint={`Est. ${totalFiles} ${totalFiles === 1 ? 'file' : 'files'} @ 0.25h each`}
+            hint={`${totalFiles} ${totalFiles === 1 ? 'file' : 'files'} received`}
+            description="Estimated time saved collecting documents (0.25h per file)"
           />
         </div>
 
         {/* 7-Day Uploads Chart */}
         <Card>
-          <CardContent className="py-6">
-            <h2 className="text-lg font-semibold mb-4">Uploads (Last 7 Days)</h2>
+          <CardContent>
+            <h2 className="text-lg font-semibold mb-1">Uploads (Last 7 Days)</h2>
+            <p className="text-xs text-fg-muted mb-6">Visual breakdown of daily file upload activity</p>
             <div className="h-48 flex items-end justify-between gap-2">
               {uploadsByDay.map((day, i) => {
                 const height = maxUploads > 0 ? (day.count / maxUploads) * 100 : 0;
@@ -142,12 +146,15 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Properties</h2>
-                <Link href="/app/properties">
-                  <Button size="sm" variant="ghost">View All</Button>
-                </Link>
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold">Properties</h2>
+              <p className="text-sm text-fg-muted mt-1">Your most recently added properties</p>
+            </div>
+            <Link href="/app/properties">
+              <Button size="sm" variant="ghost">View All</Button>
+            </Link>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {properties?.slice(0, 6).map(p => (
@@ -156,10 +163,10 @@ export default async function DashboardPage() {
                 href={`/property/${p.id}`}
                 className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:hsl(var(--ring))] focus-visible:ring-offset-2 rounded-2xl"
               >
-                <Card className="hover:bg-elev transition-colors cursor-pointer">
-                  <CardContent className="py-4">
+                <Card className="hover:bg-elev transition-colors cursor-pointer h-full">
+                  <CardContent>
                     <div className="font-medium">{p.name}</div>
-                    <div className="text-sm text-fg-muted mt-1">{p.address || 'No address'}</div>
+                    <div className="text-sm text-fg-muted mt-2">{p.address || 'No address'}</div>
                   </CardContent>
                 </Card>
               </Link>
@@ -167,9 +174,10 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        <section>
-          <div className="flex items-center justify-between mb-4">
+        <section className="space-y-4">
+          <div>
             <h2 className="text-xl font-semibold">Recent Requests</h2>
+            <p className="text-sm text-fg-muted mt-1">Latest document requests and their completion status</p>
           </div>
           {recentRequests.length > 0 ? (
             <div className="space-y-2">
@@ -180,16 +188,16 @@ export default async function DashboardPage() {
                 
                 return (
                   <Card key={r.id}>
-                    <CardContent className="py-4">
+                    <CardContent>
                       <div className="flex items-start justify-between">
-                        <div>
+                        <div className="flex-1">
                           <div className="font-medium">{r.title}</div>
                           <div className="text-sm text-fg-muted mt-1">
                             {r.due_date ? `Due: ${new Date(r.due_date).toLocaleDateString()}` : 'No due date'}
                           </div>
                         </div>
                         {total > 0 && (
-                          <div className="text-sm font-mono">
+                          <div className="text-sm font-mono text-fg-subtle">
                             {received}/{total}
                           </div>
                         )}
@@ -200,7 +208,11 @@ export default async function DashboardPage() {
               })}
             </div>
           ) : (
-            <p className="text-fg-muted">No requests yet.</p>
+            <Card>
+              <CardContent>
+                <p className="text-fg-muted text-center">No requests yet. Create your first property to get started.</p>
+              </CardContent>
+            </Card>
           )}
         </section>
       </div>

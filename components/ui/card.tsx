@@ -2,11 +2,11 @@ import { PropsWithChildren } from "react";
 import clsx from "clsx";
 
 export function Card({ children, className }: PropsWithChildren<{ className?: string }>) {
-  return <div className={clsx("rounded-2xl bg-surface shadow-soft border", className)}>{children}</div>;
+  return <div className={clsx("rounded-2xl bg-surface border border-border", className)}>{children}</div>;
 }
 
 export function CardHeader({ children, className }: PropsWithChildren<{ className?: string }>) {
-  return <div className={clsx("p-5 pb-3", className)}>{children}</div>;
+  return <div className={clsx("p-6 pb-4", className)}>{children}</div>;
 }
 
 export function CardTitle({ children, className }: PropsWithChildren<{ className?: string }>) {
@@ -18,6 +18,6 @@ export function CardDescription({ children, className }: PropsWithChildren<{ cla
 }
 
 export function CardContent({ children, className }: PropsWithChildren<{ className?: string }>) {
-  return <div className={clsx("p-5 pt-0", className)}>{children}</div>;
+  return <div className={clsx("p-6", className)}>{children}</div>;
 }
 

@@ -3,7 +3,6 @@
 import { requireUser } from '@/lib/auth';
 import { supabaseServer } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { logActivity } from '@/lib/activity';
 
 export async function createProperty(data: { name: string; address?: string }) {
   try {
@@ -25,13 +24,13 @@ export async function createProperty(data: { name: string; address?: string }) {
       return { success: false, error: 'Failed to create property' };
     }
 
-    // Log activity
-    await logActivity({
-      actor: user.id,
-      action: 'created',
-      entity: 'property',
-      entity_id: property.id,
-    });
+    // Note: Activity logging removed for now to avoid database dependency issues
+    // await logActivity({
+    //   actor: user.id,
+    //   action: 'created',
+    //   entity: 'property',
+    //   entity_id: property.id,
+    // });
 
     revalidatePath('/app/properties');
     return { success: true, data: property };
@@ -64,13 +63,13 @@ export async function updateProperty(
       return { success: false, error: 'Failed to update property' };
     }
 
-    // Log activity
-    await logActivity({
-      actor: user.id,
-      action: 'updated',
-      entity: 'property',
-      entity_id: property.id,
-    });
+    // Note: Activity logging removed for now to avoid database dependency issues
+    // await logActivity({
+    //   actor: user.id,
+    //   action: 'updated',
+    //   entity: 'property',
+    //   entity_id: property.id,
+    // });
 
     revalidatePath('/app/properties');
     revalidatePath(`/app/property/${id}`);
@@ -86,13 +85,13 @@ export async function deleteProperty(id: string) {
     const user = await requireUser();
     const db = await supabaseServer();
 
-    // Log before deleting
-    await logActivity({
-      actor: user.id,
-      action: 'deleted',
-      entity: 'property',
-      entity_id: id,
-    });
+    // Note: Activity logging removed for now to avoid database dependency issues
+    // await logActivity({
+    //   actor: user.id,
+    //   action: 'deleted',
+    //   entity: 'property',
+    //   entity_id: id,
+    // });
 
     const { error } = await db.from('properties').delete().eq('id', id);
 
@@ -108,4 +107,3 @@ export async function deleteProperty(id: string) {
     return { success: false, error: 'An unexpected error occurred' };
   }
 }
-

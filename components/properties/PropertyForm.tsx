@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { createProperty } from '@/app/app/properties/actions';
+import { createProperty } from '@/app/properties/actions';
 
 export function PropertyForm() {
   const [isOpen, setIsOpen] = useState(false);

@@ -3,6 +3,7 @@
 import { requireUser } from '@/lib/auth';
 import { supabaseServer } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { logActivity } from '@/lib/activity';
 
 export async function createProperty(data: { name: string; address?: string }) {
   try {
@@ -29,13 +30,13 @@ export async function createProperty(data: { name: string; address?: string }) {
 
     console.log('Property created successfully:', property);
 
-    // Note: Activity logging removed for now to avoid database dependency issues
-    // await logActivity({
-    //   actor: user.id,
-    //   action: 'created',
-    //   entity: 'property',
-    //   entity_id: property.id,
-    // });
+    // Log activity
+    await logActivity({
+      actor: user.id,
+      action: 'created',
+      entity: 'property',
+      entity_id: property.id,
+    });
 
     revalidatePath('/app/properties');
     revalidatePath('/dashboard');
@@ -69,13 +70,13 @@ export async function updateProperty(
       return { success: false, error: 'Failed to update property' };
     }
 
-    // Note: Activity logging removed for now to avoid database dependency issues
-    // await logActivity({
-    //   actor: user.id,
-    //   action: 'updated',
-    //   entity: 'property',
-    //   entity_id: property.id,
-    // });
+    // Log activity
+    await logActivity({
+      actor: user.id,
+      action: 'updated',
+      entity: 'property',
+      entity_id: property.id,
+    });
 
     revalidatePath('/app/properties');
     revalidatePath('/dashboard');
@@ -89,16 +90,16 @@ export async function updateProperty(
 
 export async function deleteProperty(id: string) {
   try {
-    await requireUser();
+    const user = await requireUser();
     const db = await supabaseServer();
 
-    // Note: Activity logging removed for now to avoid database dependency issues
-    // await logActivity({
-    //   actor: user.id,
-    //   action: 'deleted',
-    //   entity: 'property',
-    //   entity_id: id,
-    // });
+    // Log activity
+    await logActivity({
+      actor: user.id,
+      action: 'deleted',
+      entity: 'property',
+      entity_id: id,
+    });
 
     const { error } = await db.from('properties').delete().eq('id', id);
 

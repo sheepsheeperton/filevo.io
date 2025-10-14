@@ -25,12 +25,12 @@ export function RequestCard({ request }: { request: Request; propertyId: string 
 
   return (
     <Card>
-      <CardContent className="py-4">
-        <div className="flex items-start justify-between mb-3">
+      <CardContent>
+        <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
             <h3 className="font-medium text-lg">{request.title}</h3>
             {request.description && (
-              <p className="text-sm text-fg-muted mt-1">{request.description}</p>
+              <p className="text-sm text-fg-muted mt-2">{request.description}</p>
             )}
             {request.due_date && (
               <p className="text-sm text-fg-subtle mt-2">
@@ -39,7 +39,7 @@ export function RequestCard({ request }: { request: Request; propertyId: string 
             )}
           </div>
           <div className="text-sm text-right">
-            <div className="font-mono">
+            <div className="font-mono text-fg-subtle">
               {received}/{total} received
             </div>
           </div>

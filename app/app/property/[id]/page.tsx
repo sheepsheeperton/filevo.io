@@ -30,7 +30,7 @@ export default async function PropertyOverviewPage({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Stat label="Total Requests" value={String(totalRequests)} />
         <Stat
           label="Pending Items"
@@ -44,7 +44,7 @@ export default async function PropertyOverviewPage({
       </div>
 
       <Card>
-        <CardContent className="py-6">
+        <CardContent>
           <h2 className="text-lg font-semibold mb-4">Quick Stats</h2>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
@@ -68,9 +68,9 @@ export default async function PropertyOverviewPage({
       </Card>
 
       <Card>
-        <CardContent className="py-6">
+        <CardContent>
           <h2 className="text-lg font-semibold mb-2">About This Property</h2>
-          <p className="text-sm text-fg-muted">
+          <p className="text-sm text-fg-muted leading-relaxed">
             Use the tabs above to manage document requests, view uploaded files, and
             control access for team members.
           </p>

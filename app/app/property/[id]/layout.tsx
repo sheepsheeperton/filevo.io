@@ -33,27 +33,27 @@ export default async function PropertyLayout({
 
   return (
     <AppShell>
-      <div className="max-w-6xl">
-        <div className="mb-6">
+      <div className="max-w-6xl space-y-8">
+        <div>
           <Link
             href="/app/properties"
-            className="text-sm text-fg-muted hover:text-fg mb-2 inline-block"
+            className="text-sm text-fg-muted hover:text-fg mb-3 inline-flex items-center gap-1"
           >
             ← Back to Properties
           </Link>
-          <h1 className="text-3xl font-semibold">{property.name}</h1>
+          <h1 className="text-3xl font-semibold mt-3">{property.name}</h1>
           {property.address && (
-            <p className="text-fg-muted mt-1">{property.address}</p>
+            <p className="text-fg-muted mt-2">{property.address}</p>
           )}
         </div>
 
-        <div className="border-b border-border mb-6">
+        <div className="border-b border-border">
           <nav className="flex gap-6">
             {tabs.map((tab) => (
               <Link
                 key={tab.href}
                 href={tab.href}
-                className="px-1 py-3 border-b-2 border-transparent hover:border-fg-muted text-sm font-medium text-fg-muted hover:text-fg transition-colors"
+                className="px-1 py-3 border-b-2 border-transparent hover:border-brand text-sm font-medium text-fg-muted hover:text-fg transition-colors"
               >
                 {tab.label}
               </Link>

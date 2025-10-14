@@ -9,6 +9,8 @@ export async function createProperty(data: { name: string; address?: string }) {
     const user = await requireUser();
     const db = await supabaseServer();
 
+    console.log('Creating property with data:', { name: data.name, address: data.address, userId: user.id });
+
     const { data: property, error } = await db
       .from('properties')
       .insert({
@@ -21,8 +23,11 @@ export async function createProperty(data: { name: string; address?: string }) {
 
     if (error) {
       console.error('Error creating property:', error);
-      return { success: false, error: 'Failed to create property' };
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      return { success: false, error: `Database error: ${error.message}` };
     }
+
+    console.log('Property created successfully:', property);
 
     // Note: Activity logging removed for now to avoid database dependency issues
     // await logActivity({
@@ -36,7 +41,7 @@ export async function createProperty(data: { name: string; address?: string }) {
     return { success: true, data: property };
   } catch (error) {
     console.error('Exception in createProperty:', error);
-    return { success: false, error: 'An unexpected error occurred' };
+    return { success: false, error: `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}` };
   }
 }
 

@@ -160,7 +160,7 @@ export default async function DashboardPage() {
             {properties?.slice(0, 6).map(p => (
               <Link 
                 key={p.id} 
-                href={`/property/${p.id}`}
+                href={`/app/property/${p.id}`}
                 className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:hsl(var(--ring))] focus-visible:ring-offset-2 rounded-2xl"
               >
                 <Card className="hover:bg-elev transition-colors cursor-pointer h-full">

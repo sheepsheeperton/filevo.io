@@ -52,7 +52,7 @@ export async function updateProperty(
   data: { name: string; address?: string }
 ) {
   try {
-    await requireUser();
+    const user = await requireUser();
     const db = await supabaseServer();
 
     const { data: property, error } = await db

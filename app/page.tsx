@@ -1,7 +1,7 @@
 import Logo from '@/components/brand/Logo';
 import { redirect } from 'next/navigation';
 
-export default function Home({
+export default async function Home({
   searchParams,
 }: {
   searchParams: Promise<{ code?: string }>;

@@ -28,7 +28,10 @@ export function SignUpForm({
   const router = useRouter();
 
   const handleSignUp = async (e: React.FormEvent) => {
+    console.log("handleSignUp called", e);
     e.preventDefault();
+    console.log("Form submitted successfully");
+    
     const supabase = createClient();
     setIsLoading(true);
     setError(null);
@@ -120,16 +123,33 @@ export function SignUpForm({
                 />
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
+              
+              {/* Test button to verify button clicks work */}
+              <button 
+                type="button"
+                onClick={() => console.log("TEST BUTTON CLICKED - Button clicks work!")}
+                className="w-full bg-red-500 text-white p-2 rounded mb-2"
+              >
+                TEST BUTTON (Check Console)
+              </button>
+              
               <Button 
                 type="submit" 
                 className="w-full" 
                 disabled={isLoading || !email || !password || !repeatPassword}
-                onClick={(e) => {
+                onClick={async (e) => {
                   console.log("Sign up button clicked", { email, password, repeatPassword });
-                  // Form submission should handle this, but this is a backup
-                  if (e.defaultPrevented === false) {
-                    console.log("Form submission not prevented, calling handleSignUp");
-                  }
+                  
+                  // Prevent default form submission and handle manually
+                  e.preventDefault();
+                  console.log("Prevented default, calling handleSignUp manually");
+                  
+                  // Create a synthetic form event
+                  const syntheticEvent = {
+                    preventDefault: () => {},
+                  } as React.FormEvent;
+                  
+                  await handleSignUp(syntheticEvent);
                 }}
               >
                 {isLoading ? "Creating an account..." : "Sign up"}

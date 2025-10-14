@@ -89,7 +89,7 @@ export default async function DashboardPage() {
             <Link href="/app/activity">
               <Button variant="ghost">Activity Log</Button>
             </Link>
-            <Link href="/properties">
+            <Link href="/app/properties">
               <Button>New Property</Button>
             </Link>
           </div>
@@ -145,7 +145,7 @@ export default async function DashboardPage() {
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">Properties</h2>
-                <Link href="/properties">
+                <Link href="/app/properties">
                   <Button size="sm" variant="ghost">View All</Button>
                 </Link>
           </div>

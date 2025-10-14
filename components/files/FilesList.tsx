@@ -79,7 +79,7 @@ export function FilesList({ files }: { files: FileData[]; propertyId: string }) 
       <div className="space-y-4">
         {Object.entries(filesByRequest).map(([requestId, { title, files: requestFiles }]) => (
           <Card key={requestId}>
-            <CardContent className="py-4">
+            <CardContent>
               <h3 className="font-medium mb-3">{title}</h3>
               <div className="space-y-2">
                 {requestFiles.map((file) => {

@@ -16,9 +16,9 @@ export default async function PropertyPeoplePage({
         </div>
       </div>
 
-      <Card className="py-12">
-        <CardContent>
-          <div className="text-center space-y-4">
+      <Card>
+        <CardContent className="py-16">
+          <div className="text-center space-y-6">
             <div className="text-fg-muted">
               <svg
                 className="mx-auto h-12 w-12 text-fg-subtle"
@@ -36,8 +36,8 @@ export default async function PropertyPeoplePage({
             </div>
             <div>
               <h3 className="text-lg font-medium">Team Access (Coming Soon)</h3>
-              <p className="text-sm text-fg-muted mt-1">
-                Invite team members to collaborate on this property
+              <p className="text-sm text-fg-muted mt-2 max-w-md mx-auto">
+                Invite team members to collaborate on this property and manage document requests together
               </p>
             </div>
           </div>

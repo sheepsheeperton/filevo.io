@@ -58,9 +58,9 @@ export default async function PropertyFilesPage({
       {files && files.length > 0 ? (
         <FilesList files={files} propertyId={id} />
       ) : (
-        <Card className="py-12">
-          <CardContent>
-            <div className="text-center space-y-4">
+        <Card>
+          <CardContent className="py-16">
+            <div className="text-center space-y-6">
               <div className="text-fg-muted">
                 <svg
                   className="mx-auto h-12 w-12 text-fg-subtle"
@@ -78,8 +78,8 @@ export default async function PropertyFilesPage({
               </div>
               <div>
                 <h3 className="text-lg font-medium">No files yet</h3>
-                <p className="text-sm text-fg-muted mt-1">
-                  Files will appear here once they are uploaded via request links
+                <p className="text-sm text-fg-muted mt-2 max-w-md mx-auto">
+                  Files will appear here once they are uploaded via request links. Create a document request to generate upload links.
                 </p>
               </div>
             </div>

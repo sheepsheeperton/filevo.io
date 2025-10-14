@@ -45,7 +45,7 @@ export async function updateProperty(
   data: { name: string; address?: string }
 ) {
   try {
-    const user = await requireUser();
+    await requireUser();
     const db = await supabaseServer();
 
     const { data: property, error } = await db
@@ -82,7 +82,7 @@ export async function updateProperty(
 
 export async function deleteProperty(id: string) {
   try {
-    const user = await requireUser();
+    await requireUser();
     const db = await supabaseServer();
 
     // Note: Activity logging removed for now to avoid database dependency issues

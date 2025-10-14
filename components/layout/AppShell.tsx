@@ -7,7 +7,7 @@ import clsx from "clsx";
 
 const nav = [
   { href: "/dashboard", label: "Dashboard" },
-  { href: "/app/properties", label: "Properties" },
+  { href: "/properties", label: "Properties" },
   { href: "/app/activity", label: "Activity" },
   { href: "/sandbox", label: "UI Sandbox" },
 ];

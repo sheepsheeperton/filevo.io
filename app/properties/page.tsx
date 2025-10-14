@@ -34,7 +34,7 @@ export default async function PropertiesPage() {
             {properties.map((property) => (
               <Link
                 key={property.id}
-                href={`/app/property/${property.id}`}
+                href={`/property/${property.id}`}
                 className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:hsl(var(--ring))] focus-visible:ring-offset-2 rounded-2xl"
               >
                 <Card className="hover:bg-elev transition-colors cursor-pointer h-full">

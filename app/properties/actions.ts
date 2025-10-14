@@ -32,7 +32,7 @@ export async function createProperty(data: { name: string; address?: string }) {
     //   entity_id: property.id,
     // });
 
-    revalidatePath('/app/properties');
+    revalidatePath('/properties');
     return { success: true, data: property };
   } catch (error) {
     console.error('Exception in createProperty:', error);
@@ -71,8 +71,8 @@ export async function updateProperty(
     //   entity_id: property.id,
     // });
 
-    revalidatePath('/app/properties');
-    revalidatePath(`/app/property/${id}`);
+    revalidatePath('/properties');
+    revalidatePath(`/property/${id}`);
     return { success: true, data: property };
   } catch (error) {
     console.error('Exception in updateProperty:', error);
@@ -100,7 +100,7 @@ export async function deleteProperty(id: string) {
       return { success: false, error: 'Failed to delete property' };
     }
 
-    revalidatePath('/app/properties');
+    revalidatePath('/properties');
     return { success: true };
   } catch (error) {
     console.error('Exception in deleteProperty:', error);

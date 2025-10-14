@@ -89,7 +89,7 @@ export default async function DashboardPage() {
             <Link href="/app/activity">
               <Button variant="ghost">Activity Log</Button>
             </Link>
-            <Link href="/app/properties">
+            <Link href="/properties">
               <Button>New Property</Button>
             </Link>
           </div>
@@ -145,15 +145,15 @@ export default async function DashboardPage() {
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">Properties</h2>
-            <Link href="/app/properties">
-              <Button size="sm" variant="ghost">View All</Button>
-            </Link>
+                <Link href="/properties">
+                  <Button size="sm" variant="ghost">View All</Button>
+                </Link>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {properties?.slice(0, 6).map(p => (
               <Link 
                 key={p.id} 
-                href={`/app/property/${p.id}`}
+                href={`/property/${p.id}`}
                 className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:hsl(var(--ring))] focus-visible:ring-offset-2 rounded-2xl"
               >
                 <Card className="hover:bg-elev transition-colors cursor-pointer">

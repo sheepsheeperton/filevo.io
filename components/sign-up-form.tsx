@@ -112,7 +112,10 @@ export function SignUpForm({
                   placeholder="m@example.com"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    console.log("Email onChange:", e.target.value);
+                    setEmail(e.target.value);
+                  }}
                 />
               </div>
               <div className="grid gap-2">
@@ -124,7 +127,10 @@ export function SignUpForm({
                   type="password"
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    console.log("Password onChange:", e.target.value);
+                    setPassword(e.target.value);
+                  }}
                 />
               </div>
               <div className="grid gap-2">
@@ -136,7 +142,10 @@ export function SignUpForm({
                   type="password"
                   required
                   value={repeatPassword}
-                  onChange={(e) => setRepeatPassword(e.target.value)}
+                  onChange={(e) => {
+                    console.log("Repeat Password onChange:", e.target.value);
+                    setRepeatPassword(e.target.value);
+                  }}
                 />
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
@@ -182,9 +191,22 @@ export function SignUpForm({
                 type="submit" 
                 className="w-full" 
                 disabled={false}
-                onClick={() => {
-                  console.log("MAIN BUTTON CLICKED - Simple test");
-                  setError("Main button click handler works! Issue is in form submission logic.");
+                onClick={async (e) => {
+                  console.log("MAIN BUTTON CLICKED - Form submission");
+                  e.preventDefault();
+                  
+                  if (password !== repeatPassword) {
+                    setError("Passwords do not match");
+                    return;
+                  }
+                  
+                  if (!email || !password || !repeatPassword) {
+                    setError("Please fill in all fields");
+                    return;
+                  }
+                  
+                  console.log("All validation passed, calling handleSignUp");
+                  await handleSignUp(e);
                 }}
               >
                 {isLoading ? "Creating an account..." : "Sign up"}

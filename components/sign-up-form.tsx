@@ -181,7 +181,7 @@ export function SignUpForm({
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={isLoading || !email || !password || !repeatPassword}
+                disabled={false}
                 onClick={async (e) => {
                   console.log("Sign up button clicked", { 
                     email, 
@@ -210,6 +210,19 @@ export function SignUpForm({
                 }}
               >
                 {isLoading ? "Creating an account..." : "Sign up"}
+              </Button>
+              
+              {/* Test with disabled=false to see if disabled state is the issue */}
+              <Button 
+                type="button"
+                className="w-full mt-2"
+                disabled={false}
+                onClick={() => {
+                  console.log("FORCE ENABLED BUTTON CLICKED");
+                  setError("Force enabled button works! Issue is with disabled state logic.");
+                }}
+              >
+                FORCE ENABLED TEST
               </Button>
               
               {/* Debug info */}

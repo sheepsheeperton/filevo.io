@@ -7,10 +7,14 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
+    const { email, password } = await request.json();
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    }
+
+    if (!password) {
+      return NextResponse.json({ error: "Password is required" }, { status: 400 });
     }
 
     // Create Supabase client
@@ -36,6 +40,7 @@ export async function POST(request: NextRequest) {
     const { data: tokenData, error: tokenError } = await supabase.auth.admin.generateLink({
       type: 'signup',
       email,
+      password,
       options: {
         redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/callback`,
       },

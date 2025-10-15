@@ -42,7 +42,7 @@ export function SignUpForm({
     return () => {
       window.removeEventListener('error', handleError);
     };
-  }, []);
+  }, [email, password, repeatPassword, isLoading, error]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     console.log("handleSignUp called", e);
@@ -215,7 +215,7 @@ export function SignUpForm({
               {/* Debug info */}
               <div className="mt-2 p-2 bg-gray-800 text-xs text-white rounded">
                 <div>Debug Info:</div>
-                <div>Email: "{email}" ({email ? "✓" : "✗"})</div>
+                <div>Email: &quot;{email}&quot; ({email ? "✓" : "✗"})</div>
                 <div>Password: {"*".repeat(password.length)} ({password ? "✓" : "✗"})</div>
                 <div>Repeat: {"*".repeat(repeatPassword.length)} ({repeatPassword ? "✓" : "✗"})</div>
                 <div>Loading: {isLoading ? "✓" : "✗"}</div>

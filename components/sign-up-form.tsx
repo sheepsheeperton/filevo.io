@@ -60,6 +60,8 @@ export function SignUpForm({
     }
 
     try {
+      console.log("Calling supabase.auth.signUp with:", { email, password });
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -75,15 +77,20 @@ export function SignUpForm({
         throw error;
       }
       
+      console.log("Sign up successful, checking user state...");
+      console.log("User:", data.user);
+      console.log("Session:", data.session);
+      console.log("Email confirmed:", data.user?.email_confirmed_at);
+      
       // Check if user was created and needs email confirmation
       if (data.user && !data.user.email_confirmed_at) {
-        // User needs to confirm email
+        console.log("User needs email confirmation, redirecting to success page");
         router.push("/auth/sign-up-success");
       } else if (data.user && data.session) {
-        // User is immediately signed in (email confirmation disabled)
+        console.log("User immediately signed in, redirecting to dashboard");
         router.push("/dashboard");
       } else {
-        // Fallback
+        console.log("Fallback: redirecting to success page");
         router.push("/auth/sign-up-success");
       }
     } catch (error: unknown) {
@@ -196,17 +203,26 @@ export function SignUpForm({
                   e.preventDefault();
                   
                   if (password !== repeatPassword) {
+                    console.log("Passwords don't match");
                     setError("Passwords do not match");
                     return;
                   }
                   
                   if (!email || !password || !repeatPassword) {
+                    console.log("Missing required fields");
                     setError("Please fill in all fields");
                     return;
                   }
                   
                   console.log("All validation passed, calling handleSignUp");
-                  await handleSignUp(e);
+                  console.log("About to call handleSignUp with:", { email, password, repeatPassword });
+                  
+                  try {
+                    await handleSignUp(e);
+                    console.log("handleSignUp completed successfully");
+                  } catch (error) {
+                    console.error("Error in handleSignUp:", error);
+                  }
                 }}
               >
                 {isLoading ? "Creating an account..." : "Sign up"}

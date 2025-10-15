@@ -67,7 +67,7 @@ export function SignUpForm({
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ email }),
           });
           
           const emailResult = await emailResponse.json();

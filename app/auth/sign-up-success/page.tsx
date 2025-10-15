@@ -41,7 +41,7 @@ export default function Page() {
                     <Link href="/auth/sign-in">Back to Sign In</Link>
                   </Button>
                   
-                  <Button asChild variant="outline" size="sm">
+                  <Button asChild variant="ghost" size="sm">
                     <Link href="/">Return to Home</Link>
                   </Button>
                 </div>

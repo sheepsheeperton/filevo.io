@@ -27,33 +27,9 @@ export function SignUpForm({
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  // Debug: Log when component mounts
-  useEffect(() => {
-    console.log("SignUpForm component mounted successfully");
-    console.log("Current state:", { email, password, repeatPassword, isLoading, error });
-    
-    // Check environment variables
-    console.log("Environment check:");
-    console.log("NEXT_PUBLIC_SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL ? "✓ Set" : "✗ Missing");
-    console.log("NEXT_PUBLIC_SUPABASE_ANON_KEY:", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? "✓ Set" : "✗ Missing");
-    
-    // Add global error handler
-    const handleError = (e: ErrorEvent) => {
-      console.error("Global JavaScript error:", e.error);
-    };
-    
-    window.addEventListener('error', handleError);
-    
-    return () => {
-      window.removeEventListener('error', handleError);
-    };
-  }, [email, password, repeatPassword, isLoading, error]);
 
   const handleSignUp = async (e: React.FormEvent) => {
-    console.log("handleSignUp called", e);
     e.preventDefault();
-    console.log("Form submitted successfully");
-    
     const supabase = createClient();
     setIsLoading(true);
     setError(null);
@@ -64,9 +40,13 @@ export function SignUpForm({
       return;
     }
 
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      console.log("Calling supabase.auth.signUp with:", { email, password });
-      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -75,31 +55,20 @@ export function SignUpForm({
         },
       });
       
-      console.log("Sign up response:", { data, error });
-      
-      if (error) {
-        console.error("Sign up error:", error);
-        throw error;
-      }
-      
-      console.log("Sign up successful, checking user state...");
-      console.log("User:", data.user);
-      console.log("Session:", data.session);
-      console.log("Email confirmed:", data.user?.email_confirmed_at);
+      if (error) throw error;
       
       // Check if user was created and needs email confirmation
       if (data.user && !data.user.email_confirmed_at) {
-        console.log("User needs email confirmation, redirecting to success page");
+        // User needs to confirm email
         router.push("/auth/sign-up-success");
       } else if (data.user && data.session) {
-        console.log("User immediately signed in, redirecting to dashboard");
+        // User is immediately signed in (email confirmation disabled)
         router.push("/dashboard");
       } else {
-        console.log("Fallback: redirecting to success page");
+        // Fallback
         router.push("/auth/sign-up-success");
       }
     } catch (error: unknown) {
-      console.error("Sign up error:", error);
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setIsLoading(false);
@@ -124,10 +93,7 @@ export function SignUpForm({
                   placeholder="m@example.com"
                   required
                   value={email}
-                  onChange={(e) => {
-                    console.log("Email onChange:", e.target.value);
-                    setEmail(e.target.value);
-                  }}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
               <div className="grid gap-2">
@@ -139,11 +105,11 @@ export function SignUpForm({
                   type="password"
                   required
                   value={password}
-                  onChange={(e) => {
-                    console.log("Password onChange:", e.target.value);
-                    setPassword(e.target.value);
-                  }}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Password must be at least 6 characters long
+                </p>
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
@@ -154,107 +120,13 @@ export function SignUpForm({
                   type="password"
                   required
                   value={repeatPassword}
-                  onChange={(e) => {
-                    console.log("Repeat Password onChange:", e.target.value);
-                    setRepeatPassword(e.target.value);
-                  }}
+                  onChange={(e) => setRepeatPassword(e.target.value)}
                 />
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
-              
-              {/* Test button to verify button clicks work */}
-              <button 
-                type="button"
-                onClick={() => {
-                  console.log("TEST BUTTON CLICKED - Button clicks work!");
-                  alert("Test button works! Check console for details.");
-                }}
-                className="w-full bg-red-500 text-white p-2 rounded mb-2"
-              >
-                TEST BUTTON (Should show alert)
-              </button>
-              
-              {/* Simple test without any dependencies */}
-              <button 
-                type="button"
-                onClick={() => {
-                  console.log("SIMPLE TEST CLICKED");
-                  setError("Simple test button works! Form state is functional.");
-                }}
-                className="w-full bg-green-500 text-white p-2 rounded mb-2"
-              >
-                SIMPLE TEST (Should show error message)
-              </button>
-              
-              {/* Test Button component */}
-              <Button 
-                type="button"
-                onClick={() => {
-                  console.log("BUTTON COMPONENT TEST CLICKED");
-                  setError("Button component works! Issue is with form submission.");
-                }}
-                className="w-full mb-2"
-                variant="secondary"
-              >
-                BUTTON COMPONENT TEST
-              </Button>
-              
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={false}
-                onClick={async (e) => {
-                  console.log("MAIN BUTTON CLICKED - Form submission");
-                  e.preventDefault();
-                  
-                  if (password !== repeatPassword) {
-                    console.log("Passwords don't match");
-                    setError("Passwords do not match");
-                    return;
-                  }
-                  
-                  if (!email || !password || !repeatPassword) {
-                    console.log("Missing required fields");
-                    setError("Please fill in all fields");
-                    return;
-                  }
-                  
-                  console.log("All validation passed, calling handleSignUp");
-                  console.log("About to call handleSignUp with:", { email, password, repeatPassword });
-                  
-                  try {
-                    await handleSignUp(e);
-                    console.log("handleSignUp completed successfully");
-                  } catch (error) {
-                    console.error("Error in handleSignUp:", error);
-                  }
-                }}
-              >
+              <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Creating an account..." : "Sign up"}
               </Button>
-              
-              {/* Test with disabled=false to see if disabled state is the issue */}
-              <Button 
-                type="button"
-                className="w-full mt-2"
-                disabled={false}
-                onClick={() => {
-                  console.log("FORCE ENABLED BUTTON CLICKED");
-                  setError("Force enabled button works! Issue is with disabled state logic.");
-                }}
-              >
-                FORCE ENABLED TEST
-              </Button>
-              
-              {/* Debug info */}
-              <div className="mt-2 p-2 bg-gray-800 text-xs text-white rounded">
-                <div>Debug Info:</div>
-                <div>Email: &quot;{email}&quot; ({email ? "✓" : "✗"})</div>
-                <div>Password: {"*".repeat(password.length)} ({password ? "✓" : "✗"})</div>
-                <div>Repeat: {"*".repeat(repeatPassword.length)} ({repeatPassword ? "✓" : "✗"})</div>
-                <div>Loading: {isLoading ? "✓" : "✗"}</div>
-                <div>Button Disabled: {isLoading || !email || !password || !repeatPassword ? "YES" : "NO"}</div>
-              </div>
             </div>
             <div className="mt-4 text-center text-sm">
               Already have an account?{" "}

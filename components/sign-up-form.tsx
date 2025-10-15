@@ -55,6 +55,8 @@ export function SignUpForm({
         },
       });
       
+      console.log("Sign-up response:", { data, error });
+      
       if (error) throw error;
       
       // Check if user was created and needs email confirmation

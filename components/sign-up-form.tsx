@@ -165,12 +165,37 @@ export function SignUpForm({
                 SIMPLE TEST (Should show error message)
               </button>
               
+              {/* Test Button component */}
+              <Button 
+                type="button"
+                onClick={() => {
+                  console.log("BUTTON COMPONENT TEST CLICKED");
+                  setError("Button component works! Issue is with form submission.");
+                }}
+                className="w-full mb-2"
+                variant="secondary"
+              >
+                BUTTON COMPONENT TEST
+              </Button>
+              
               <Button 
                 type="submit" 
                 className="w-full" 
                 disabled={isLoading || !email || !password || !repeatPassword}
                 onClick={async (e) => {
-                  console.log("Sign up button clicked", { email, password, repeatPassword });
+                  console.log("Sign up button clicked", { 
+                    email, 
+                    password, 
+                    repeatPassword,
+                    isLoading,
+                    isDisabled: isLoading || !email || !password || !repeatPassword,
+                    disabledReasons: {
+                      isLoading,
+                      noEmail: !email,
+                      noPassword: !password,
+                      noRepeatPassword: !repeatPassword
+                    }
+                  });
                   
                   // Prevent default form submission and handle manually
                   e.preventDefault();
@@ -186,6 +211,16 @@ export function SignUpForm({
               >
                 {isLoading ? "Creating an account..." : "Sign up"}
               </Button>
+              
+              {/* Debug info */}
+              <div className="mt-2 p-2 bg-gray-800 text-xs text-white rounded">
+                <div>Debug Info:</div>
+                <div>Email: "{email}" ({email ? "✓" : "✗"})</div>
+                <div>Password: {"*".repeat(password.length)} ({password ? "✓" : "✗"})</div>
+                <div>Repeat: {"*".repeat(repeatPassword.length)} ({repeatPassword ? "✓" : "✗"})</div>
+                <div>Loading: {isLoading ? "✓" : "✗"}</div>
+                <div>Button Disabled: {isLoading || !email || !password || !repeatPassword ? "YES" : "NO"}</div>
+              </div>
             </div>
             <div className="mt-4 text-center text-sm">
               Already have an account?{" "}

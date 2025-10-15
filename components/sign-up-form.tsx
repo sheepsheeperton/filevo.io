@@ -55,34 +55,17 @@ export function SignUpForm({
         },
       });
       
-      console.log("Sign-up response:", { data, error });
-      
       if (error) throw error;
       
-      // If user was created, send custom confirmation email via Resend
-      if (data.user) {
-        try {
-          const emailResponse = await fetch('/api/auth/send-confirmation', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email }),
-          });
-          
-          const emailResult = await emailResponse.json();
-          
-          if (emailResponse.ok) {
-            console.log("Custom confirmation email sent:", emailResult);
-          } else {
-            console.error("Failed to send custom confirmation email:", emailResult);
-          }
-        } catch (emailError) {
-          console.error("Error sending custom confirmation email:", emailError);
-          // Don't fail the sign-up if email fails, just log it
-        }
-        
-        // Always redirect to success page since user was created
+      // Check if email confirmation is required
+      if (data.user && !data.user.email_confirmed_at) {
+        // User needs to confirm email
+        router.push("/auth/sign-up-success");
+      } else if (data.user && data.session) {
+        // User is immediately signed in (email confirmation disabled)
+        router.push("/dashboard");
+      } else {
+        // Fallback to success page
         router.push("/auth/sign-up-success");
       }
     } catch (error: unknown) {

@@ -182,31 +182,9 @@ export function SignUpForm({
                 type="submit" 
                 className="w-full" 
                 disabled={false}
-                onClick={async (e) => {
-                  console.log("Sign up button clicked", { 
-                    email, 
-                    password, 
-                    repeatPassword,
-                    isLoading,
-                    isDisabled: isLoading || !email || !password || !repeatPassword,
-                    disabledReasons: {
-                      isLoading,
-                      noEmail: !email,
-                      noPassword: !password,
-                      noRepeatPassword: !repeatPassword
-                    }
-                  });
-                  
-                  // Prevent default form submission and handle manually
-                  e.preventDefault();
-                  console.log("Prevented default, calling handleSignUp manually");
-                  
-                  // Create a synthetic form event
-                  const syntheticEvent = {
-                    preventDefault: () => {},
-                  } as React.FormEvent;
-                  
-                  await handleSignUp(syntheticEvent);
+                onClick={() => {
+                  console.log("MAIN BUTTON CLICKED - Simple test");
+                  setError("Main button click handler works! Issue is in form submission logic.");
                 }}
               >
                 {isLoading ? "Creating an account..." : "Sign up"}

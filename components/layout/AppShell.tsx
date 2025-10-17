@@ -43,7 +43,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         "fixed lg:relative w-64 lg:w-[260px]"
       )}>
         <div className="flex items-center justify-between">
-          <Logo variant="full" />
+          <Logo variant="combined" />
           {/* Close button for mobile */}
           <Button
             variant="ghost"
@@ -102,7 +102,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </Button>
-          <Logo variant="full" className="h-8" />
+          <Logo variant="combined" className="h-8" />
           <div className="w-9" /> {/* Spacer for centering */}
         </header>
 

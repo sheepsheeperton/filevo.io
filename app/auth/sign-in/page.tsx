@@ -200,7 +200,7 @@ function SignInForm() {
       <div className="w-full max-w-md space-y-6 sm:space-y-8">
         {/* Logo and Header */}
         <div className="text-center space-y-3 sm:space-y-4">
-          <Logo variant="full" className="justify-center h-10 sm:h-12" />
+          <Logo variant="combined" className="justify-center h-10 sm:h-12" />
           <div className="space-y-1 sm:space-y-2">
             <h1 className="text-2xl sm:text-3xl font-semibold text-fg">
               Welcome to Filevo

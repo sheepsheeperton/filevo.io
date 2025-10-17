@@ -107,7 +107,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Main content area - full width on mobile with top padding for fixed header */}
-        <main className="bg-bg px-4 pt-16 pb-3 sm:p-6 lg:p-8 space-y-6 flex-1 w-full">
+        <main className="bg-bg px-4 pt-12 pb-3 sm:p-6 lg:p-8 space-y-6 flex-1 w-full">
           {children}
         </main>
       </div>

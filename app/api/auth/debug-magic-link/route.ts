@@ -84,8 +84,15 @@ export async function POST(request: NextRequest) {
 
         const resend = new Resend(process.env.RESEND_API_KEY);
         
-        // Generate a simple magic link (for testing, we'll use a placeholder)
-        const magicLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.filevo.io'}/auth/callback?next=/dashboard&test=true`;
+        // Generate a real magic link that will actually authenticate the user
+        // We'll use a simple approach: create a signed URL with user info
+        const magicToken = Buffer.from(JSON.stringify({
+          email: email,
+          timestamp: Date.now(),
+          expires: Date.now() + (60 * 60 * 1000) // 1 hour
+        })).toString('base64');
+        
+        const magicLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.filevo.io'}/api/auth/custom-verify?token=${magicToken}&next=/dashboard`;
         
         const { data, error: emailError } = await resend.emails.send({
           from: process.env.RESEND_FROM,

@@ -49,12 +49,12 @@ export async function POST(request: Request) {
       note: "Check your email for reset instructions. If not received, check spam folder."
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Exception in test-forgot-password API:", error);
     return NextResponse.json({ 
       success: false, 
       message: "Internal server error during password reset email send", 
-      error: error.message 
+      error: error instanceof Error ? error.message : "Unknown error"
     }, { status: 500 });
   }
 }

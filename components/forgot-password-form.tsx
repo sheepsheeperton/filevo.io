@@ -68,7 +68,7 @@ export function ForgotPasswordForm({
               <h4 className="font-medium text-amber-100 mb-2">Not receiving the email?</h4>
               <div className="text-sm text-amber-200/80 space-y-2">
                 <p>• Check your spam/junk folder</p>
-                <p>• Make sure you're checking the correct email address</p>
+                <p>• Make sure you&apos;re checking the correct email address</p>
                 <p>• Email delivery can sometimes be delayed</p>
                 <p>• If you continue having issues, contact support</p>
               </div>

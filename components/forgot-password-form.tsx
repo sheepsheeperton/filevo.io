@@ -44,7 +44,15 @@ export function ForgotPasswordForm({
       setSuccess(true);
     } catch (error: unknown) {
       console.error("Password reset error:", error);
-      setError(error instanceof Error ? error.message : "An error occurred");
+      
+      // Handle specific error cases
+      const errorMessage = error instanceof Error ? error.message : "An error occurred";
+      
+      if (errorMessage.includes("rate limit") || errorMessage.includes("too many requests")) {
+        setError("Email rate limit exceeded. Please wait a few minutes before trying again. If you continue having issues, try using a different email address or contact support.");
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +77,9 @@ export function ForgotPasswordForm({
               <div className="text-sm text-amber-200/80 space-y-2">
                 <p>• Check your spam/junk folder</p>
                 <p>• Make sure you&apos;re checking the correct email address</p>
-                <p>• Email delivery can sometimes be delayed</p>
+                <p>• Email delivery can sometimes be delayed (up to 5-10 minutes)</p>
+                <p>• If you see &quot;rate limit exceeded&quot;, wait 5-10 minutes before trying again</p>
+                <p>• Try using a different email address if available</p>
                 <p>• If you continue having issues, contact support</p>
               </div>
             </div>

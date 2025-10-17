@@ -31,8 +31,8 @@ export function ForgotPasswordForm({
     try {
       console.log("Attempting password reset for:", email);
       
-      // Use our custom reliable password reset API
-      const response = await fetch('/api/auth/reset-password', {
+      // Try the simple password reset API first (fallback)
+      const response = await fetch('/api/auth/simple-reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -40,7 +40,24 @@ export function ForgotPasswordForm({
         body: JSON.stringify({ email }),
       });
 
-      const result = await response.json();
+      console.log("Response status:", response.status);
+      console.log("Response headers:", Object.fromEntries(response.headers.entries()));
+      
+      const responseText = await response.text();
+      console.log("Raw response text:", responseText);
+      
+      if (!responseText) {
+        throw new Error("Empty response from server");
+      }
+      
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("Failed to parse JSON:", parseError);
+        throw new Error(`Server returned invalid JSON: ${responseText.substring(0, 100)}`);
+      }
+      
       console.log("Password reset response:", result);
 
       if (!response.ok) {

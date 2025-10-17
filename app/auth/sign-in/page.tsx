@@ -41,15 +41,27 @@ function SignInForm() {
     setIsLoading(true);
 
     try {
-      console.log('Testing with simple API first...');
+      console.log('Testing with ultra-simple ping API first...');
       
-      // Test with simple API first to verify routing
-      const testResponse = await fetch('/api/test-new-auth', {
+      // Test with ultra-simple ping API first
+      const pingResponse = await fetch('/api/ping', {
+        method: 'GET',
+      });
+      
+      console.log('Ping GET status:', pingResponse.status);
+      console.log('Ping GET ok:', pingResponse.ok);
+      
+      if (!pingResponse.ok) {
+        throw new Error(`Ping API failed with status: ${pingResponse.status}`);
+      }
+      
+      const pingResult = await pingResponse.json();
+      console.log('Ping API result:', pingResult);
+      
+      // Now test POST to ping API
+      console.log('Testing ping POST...');
+      const testResponse = await fetch('/api/ping', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
       });
 
       console.log('Test response status:', testResponse.status);

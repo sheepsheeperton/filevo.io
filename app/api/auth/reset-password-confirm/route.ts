@@ -54,14 +54,18 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Get user by email using the database directly
-    const { data: userData, error: userError } = await supabase
-      .from('auth.users')
-      .select('id, email')
-      .eq('email', tokenData.email)
-      .single();
+    // Get user by email using admin API
+    const { data: users, error: userError } = await supabase.auth.admin.listUsers();
     
-    if (userError || !userData) {
+    if (userError || !users) {
+      return NextResponse.json({ 
+        error: "User not found" 
+      }, { status: 400 });
+    }
+
+    const user = users.users.find(u => u.email === tokenData.email);
+    
+    if (!user) {
       return NextResponse.json({ 
         error: "User not found" 
       }, { status: 400 });
@@ -69,7 +73,7 @@ export async function POST(request: NextRequest) {
 
     // Update the user's password
     const { error: updateError } = await supabase.auth.admin.updateUserById(
-      userData.id,
+      user.id,
       { password: newPassword }
     );
 

@@ -6,7 +6,14 @@ import { ulid } from "ulid";
 
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON in request body" }, { status: 400 });
+    }
+    
+    const { email } = body;
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
@@ -31,14 +38,19 @@ export async function POST(request: NextRequest) {
       },
     );
 
-    // Check if user exists using the database directly
-    const { data: userData, error: userError } = await supabase
-      .from('auth.users')
-      .select('id, email')
-      .eq('email', email)
-      .single();
+    // Check if user exists using admin API
+    let userExists = false;
+    try {
+      const { data: users, error: userError } = await supabase.auth.admin.listUsers();
+      if (!userError && users) {
+        userExists = users.users.some(user => user.email === email);
+      }
+    } catch (error) {
+      console.error('Error checking user existence:', error);
+      // Continue anyway for security
+    }
     
-    if (userError || !userData) {
+    if (!userExists) {
       // Don't reveal if user exists or not for security
       return NextResponse.json({ 
         success: true, 
@@ -62,6 +74,8 @@ export async function POST(request: NextRequest) {
 
     if (tokenError) {
       console.error('Error storing reset token:', tokenError);
+      // If the table doesn't exist, fall back to a simple approach
+      console.log('Password reset tokens table may not exist. Please run the migration.');
       return NextResponse.json({ 
         success: true, 
         message: "If an account with that email exists, a password reset link has been sent." 

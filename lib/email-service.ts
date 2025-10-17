@@ -19,8 +19,13 @@ export interface EmailOptions {
 
 export async function sendEmail({ to, subject, html, text }: EmailOptions) {
   try {
+    // Check if required environment variables are set
+    if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM) {
+      throw new Error('Resend configuration is missing. Please set RESEND_API_KEY and RESEND_FROM environment variables.');
+    }
+
     const { data, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM!,
+      from: process.env.RESEND_FROM,
       to,
       subject,
       html,

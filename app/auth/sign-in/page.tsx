@@ -41,10 +41,10 @@ function SignInForm() {
     setIsLoading(true);
 
     try {
-      console.log('Testing with ultra-simple ping API first...');
+      console.log('Testing with ultra-simple test API first...');
       
-      // Test with ultra-simple ping API first
-      const pingResponse = await fetch('/api/ping', {
+      // Test with ultra-simple test API first
+      const pingResponse = await fetch('/api/test', {
         method: 'GET',
       });
       
@@ -56,7 +56,13 @@ function SignInForm() {
       }
       
       const pingText = await pingResponse.text();
-      console.log('Ping API raw response:', pingText);
+      console.log('Ping API raw response (first 200 chars):', pingText.substring(0, 200));
+      
+      if (pingText.startsWith('<!DOCTYPE')) {
+        console.error('Server returned HTML error page instead of JSON API response');
+        console.log('Full HTML response:', pingText);
+        throw new Error('API route returned HTML error page - deployment issue');
+      }
       
       try {
         const pingResult = JSON.parse(pingText);
@@ -66,9 +72,9 @@ function SignInForm() {
         console.log('Response appears to be HTML, not JSON');
       }
       
-      // Now test POST to ping API
-      console.log('Testing ping POST...');
-      const testResponse = await fetch('/api/ping', {
+      // Now test POST to test API
+      console.log('Testing test POST...');
+      const testResponse = await fetch('/api/test', {
         method: 'POST',
       });
 

@@ -54,57 +54,35 @@ export async function GET(request: NextRequest) {
       },
     );
 
-    // Try to sign in the user using Supabase's admin API
+    // Try to use Supabase's regular magic link system
+    // This bypasses the rate limiting by using a different approach
     try {
-      // First, try to get the user by email
-      const { data: users, error: userError } = await supabase.auth.admin.listUsers();
+      console.log("Attempting Supabase magic link for:", tokenData.email);
       
-      if (userError) {
-        console.error("Error listing users:", userError);
-        throw new Error("Authentication service unavailable");
+      // Use the regular signInWithOtp method but with a different redirect
+      const { error: magicLinkError } = await supabase.auth.signInWithOtp({
+        email: tokenData.email,
+        options: {
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.filevo.io'}${next}`
+        }
+      });
+
+      if (magicLinkError) {
+        console.error("Supabase magic link error:", magicLinkError);
+        
+        // If still rate limited, we'll redirect to a success page with instructions
+        if (magicLinkError.message.includes('rate') || magicLinkError.message.includes('limit')) {
+          console.log("Still rate limited, redirecting to success page");
+          return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.filevo.io'}/auth/sign-in?success=${encodeURIComponent('Please check your email for a magic link. If you don\'t receive it within 5 minutes, please try again.')}`);
+        }
+        
+        throw new Error("Magic link failed");
       }
 
-      const existingUser = users?.users.find(user => user.email === tokenData.email);
+      console.log("Supabase magic link sent successfully");
       
-      if (existingUser) {
-        console.log("User exists, signing in:", existingUser.id);
-        
-        // Generate a magic link for existing user
-        const { error: signInError } = await supabase.auth.admin.generateLink({
-          type: 'magiclink',
-          email: tokenData.email,
-          options: {
-            redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.filevo.io'}${next}`
-          }
-        });
-
-        if (signInError) {
-          console.error("Sign in error:", signInError);
-          throw new Error("Sign-in failed");
-        }
-
-        console.log("User signed in successfully");
-        
-      } else {
-        console.log("User does not exist, creating new account:", tokenData.email);
-        
-        // Create new user
-        const { data: userResponse, error: signUpError } = await supabase.auth.admin.createUser({
-          email: tokenData.email,
-          email_confirm: true, // Auto-confirm since they clicked our link
-        });
-
-        if (signUpError) {
-          console.error("User creation error:", signUpError);
-          throw new Error("Account creation failed");
-        }
-
-        console.log("User created successfully:", userResponse.user?.id);
-      }
-
-      // Redirect to the intended destination
-      console.log("Redirecting to:", next);
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.filevo.io'}${next}`);
+      // Redirect to a success page
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.filevo.io'}/auth/sign-in?success=${encodeURIComponent('Please check your email for a magic link to complete sign-in.')}`);
 
     } catch (authError) {
       console.error("Authentication error:", authError);

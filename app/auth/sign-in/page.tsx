@@ -16,11 +16,17 @@ function SignInForm() {
   const [canResend, setCanResend] = useState(false);
   const searchParams = useSearchParams();
 
-  // Check for error parameter from magic link verification
+  // Check for error or success parameter from magic link verification
   useEffect(() => {
     const errorParam = searchParams?.get('error');
+    const successParam = searchParams?.get('success');
+    
     if (errorParam) {
       setError(decodeURIComponent(errorParam));
+    } else if (successParam) {
+      // Show success message
+      setSent(true);
+      setEmail(''); // Clear email since we don't know which one was used
     }
   }, [searchParams]);
 

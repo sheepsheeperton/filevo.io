@@ -41,9 +41,30 @@ function SignInForm() {
     setIsLoading(true);
 
     try {
-      console.log('Sending magic link request for:', email);
+      console.log('Testing with simple API first...');
       
-      const response = await fetch('/api/auth/custom-magic-link', {
+      // Test with simple API first to verify routing
+      const testResponse = await fetch('/api/test-new-auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      console.log('Test response status:', testResponse.status);
+      console.log('Test response ok:', testResponse.ok);
+      
+      if (!testResponse.ok) {
+        throw new Error(`Test API failed with status: ${testResponse.status}`);
+      }
+      
+      const testResult = await testResponse.json();
+      console.log('Test API result:', testResult);
+
+      // Now try the simple magic link API
+      console.log('Test API works, trying simple magic link API...');
+      const response = await fetch('/api/auth/simple-magic-link', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

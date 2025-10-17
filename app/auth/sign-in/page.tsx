@@ -16,8 +16,9 @@ export default function SignInPage() {
     setIsLoading(true);
     
     try {
-      // Use our custom magic link API to bypass Supabase rate limits
-      const response = await fetch('/api/auth/custom-magic-link', {
+      // First test with simple API to verify basic functionality
+      console.log("Testing with simple API first...");
+      const response = await fetch('/api/test-magic-link', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -25,14 +26,26 @@ export default function SignInPage() {
         body: JSON.stringify({ email }),
       });
 
-      const result = await response.json();
+      console.log("Response status:", response.status);
+      console.log("Response ok:", response.ok);
+      
+      const responseText = await response.text();
+      console.log("Raw response text:", responseText);
+      
+      if (!responseText) {
+        throw new Error("Empty response from server");
+      }
+      
+      const result = JSON.parse(responseText);
+      console.log("Parsed result:", result);
 
       if (!response.ok) {
-        throw new Error(result.message || 'Failed to send magic link');
+        throw new Error(result.message || 'Test API failed');
       }
 
       setSent(true);
     } catch (error: unknown) {
+      console.error("Sign-in error:", error);
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setIsLoading(false);

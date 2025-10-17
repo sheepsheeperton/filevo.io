@@ -96,9 +96,9 @@ function SignInForm() {
         throw new Error('Server returned HTML instead of JSON - deployment issue');
       }
 
-      // Now try the real magic link API
-      console.log('Test API works, trying real magic link API...');
-      const response = await fetch('/api/auth/simple-magic-link-real', {
+      // Now try the debug magic link API
+      console.log('Test API works, trying debug magic link API...');
+      const response = await fetch('/api/auth/debug-magic-link', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

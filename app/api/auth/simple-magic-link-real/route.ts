@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     // Try Supabase's built-in magic link first
     console.log("Attempting Supabase magic link...");
-    const redirectUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.filevo.io'}/auth/callback?next=/app/dashboard`;
+    const redirectUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.filevo.io'}/auth/callback?next=/dashboard`;
     
     const { error: magicLinkError } = await supabase.auth.signInWithOtp({
       email,

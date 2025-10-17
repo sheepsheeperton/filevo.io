@@ -1,6 +1,5 @@
 'use client';
 import { useState } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Logo from '@/components/brand/Logo';
@@ -10,33 +9,34 @@ export default function SignInPage() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
     
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
-    
-    const { error: authError } = await supabase.auth.signInWithOtp({ 
-      email, 
-      options: { 
-        emailRedirectTo: `${baseUrl}/auth/confirm?next=/dashboard`
+    try {
+      // Use our custom magic link API to bypass Supabase rate limits
+      const response = await fetch('/api/auth/custom-magic-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to send magic link');
       }
-    });
-    
-    if (!authError) {
+
       setSent(true);
-    } else {
-      setError(authError.message);
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : "An error occurred");
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   }
 
   return (

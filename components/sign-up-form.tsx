@@ -1,7 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,7 +29,6 @@ export function SignUpForm({
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
 
@@ -47,27 +45,23 @@ export function SignUpForm({
     }
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+      // Use our custom reliable sign-up API
+      const response = await fetch('/api/auth/sign-up', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ email, password }),
       });
-      
-      if (error) throw error;
-      
-      // Check if email confirmation is required
-      if (data.user && !data.user.email_confirmed_at) {
-        // User needs to confirm email
-        router.push("/auth/sign-up-success");
-      } else if (data.user && data.session) {
-        // User is immediately signed in (email confirmation disabled)
-        router.push("/dashboard");
-      } else {
-        // Fallback to success page
-        router.push("/auth/sign-up-success");
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Sign up failed');
       }
+
+      console.log('Sign-up response:', result);
+      router.push('/auth/sign-up-success');
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {

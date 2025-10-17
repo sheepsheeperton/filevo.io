@@ -16,15 +16,41 @@ export default function SignInPage() {
     setIsLoading(true);
     
     try {
-      // Test with existing API that should definitely work
-      console.log("Testing with existing /api/debug-test API...");
-      const response = await fetch('/api/debug-test', {
+      // First test with GET request to see if route exists at all
+      console.log("Testing GET request to /api/debug-test...");
+      let response = await fetch('/api/debug-test', {
+        method: 'GET',
+      });
+
+      console.log("GET Response status:", response.status);
+      console.log("GET Response ok:", response.ok);
+      
+      if (response.ok) {
+        const getText = await response.text();
+        console.log("GET Raw response:", getText);
+      }
+
+      // Now test POST request
+      console.log("Testing POST request to /api/debug-test...");
+      response = await fetch('/api/debug-test', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email }),
       });
+
+      // Also test the simpler route
+      console.log("Testing simple /test-api route...");
+      const simpleResponse = await fetch('/test-api', {
+        method: 'GET',
+      });
+      console.log("Simple API GET status:", simpleResponse.status);
+      
+      if (simpleResponse.ok) {
+        const simpleText = await simpleResponse.text();
+        console.log("Simple API response:", simpleText);
+      }
 
       console.log("Response status:", response.status);
       console.log("Response ok:", response.ok);

@@ -31,9 +31,9 @@ export function ForgotPasswordForm({
     try {
       console.log("Attempting password reset for:", email);
       
-      // First test basic connectivity
+      // First test basic connectivity with new debug API
       console.log("Testing basic API connectivity...");
-      const testResponse = await fetch('/api/test-simple', {
+      const testResponse = await fetch('/api/debug-test', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -43,6 +43,14 @@ export function ForgotPasswordForm({
       
       console.log("Test response status:", testResponse.status);
       console.log("Test response ok:", testResponse.ok);
+      
+      if (testResponse.status === 405) {
+        throw new Error("API method not allowed - routing issue detected");
+      }
+      
+      if (!testResponse.ok) {
+        throw new Error(`API request failed with status: ${testResponse.status}`);
+      }
       
       const testResult = await testResponse.json();
       console.log("Basic API test result:", testResult);
@@ -108,10 +116,12 @@ export function ForgotPasswordForm({
       // Handle specific error cases
       const errorMessage = error instanceof Error ? error.message : "An error occurred";
       
-      if (errorMessage.includes("rate limit") || errorMessage.includes("too many requests")) {
+      if (errorMessage.includes("405") || errorMessage.includes("Method Not Allowed")) {
+        setError("API routing issue detected. Please contact support or try again later.");
+      } else if (errorMessage.includes("rate limit") || errorMessage.includes("too many requests")) {
         setError("Email rate limit exceeded. Please wait a few minutes before trying again. If you continue having issues, try using a different email address or contact support.");
       } else {
-        setError(errorMessage);
+        setError(`Password reset failed: ${errorMessage}`);
       }
     } finally {
       setIsLoading(false);

@@ -196,16 +196,16 @@ function SignInForm() {
   };
 
   return (
-    <main className="min-h-screen bg-bg flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8">
+    <main className="min-h-screen bg-bg flex items-center justify-center p-4 sm:p-6">
+      <div className="w-full max-w-md space-y-6 sm:space-y-8">
         {/* Logo and Header */}
-        <div className="text-center space-y-4">
-          <Logo variant="full" className="justify-center h-12" />
-          <div className="space-y-2">
-            <h1 className="text-3xl font-semibold text-fg">
+        <div className="text-center space-y-3 sm:space-y-4">
+          <Logo variant="full" className="justify-center h-10 sm:h-12" />
+          <div className="space-y-1 sm:space-y-2">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-fg">
               Welcome to Filevo
             </h1>
-            <p className="text-fg-muted text-lg">
+            <p className="text-fg-muted text-base sm:text-lg px-2">
               Secure document collection for property managers
             </p>
           </div>
@@ -213,34 +213,34 @@ function SignInForm() {
 
         {/* Auth Card */}
         <Card className="border-border bg-surface">
-          <CardHeader className="space-y-2">
-            <CardTitle className="text-xl text-center text-fg">
+          <CardHeader className="space-y-2 px-4 sm:px-6 pt-6 sm:pt-6 pb-4 sm:pb-4">
+            <CardTitle className="text-lg sm:text-xl text-center text-fg">
               {sent ? 'Check your email' : 'Sign in or create account'}
             </CardTitle>
             {!sent && (
-              <p className="text-sm text-fg-muted text-center">
+              <p className="text-sm text-fg-muted text-center px-2">
                 We&apos;ll email you a secure link to get started
               </p>
             )}
           </CardHeader>
           
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-5 sm:space-y-6 px-4 sm:px-6 pb-6 sm:pb-6">
             {sent ? (
               /* Success State */
               <div className="space-y-4">
-                <div className="bg-success/10 border border-success/20 rounded-lg p-4">
+                <div className="bg-success/10 border border-success/20 rounded-lg p-4 sm:p-4">
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0">
                       <svg className="h-5 w-5 text-success mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 min-w-0 flex-1">
                       <p className="text-sm font-medium text-success">
                         Magic link sent!
                       </p>
-                      <p className="text-sm text-fg-muted">
-                        We sent a secure link to <strong className="text-fg">{email}</strong>. 
+                      <p className="text-sm text-fg-muted leading-relaxed">
+                        We sent a secure link to <strong className="text-fg break-all">{email}</strong>. 
                         Click the link in your email to sign in or create your account.
                       </p>
                       <p className="text-xs text-fg-subtle">
@@ -255,13 +255,13 @@ function SignInForm() {
                     <Button 
                       onClick={handleResend}
                       variant="secondary" 
-                      className="w-full"
+                      className="w-full h-12 sm:h-10 text-sm sm:text-sm font-medium"
                     >
                       Send another link
                     </Button>
                   ) : (
-                    <div className="text-center">
-                      <p className="text-xs text-fg-subtle">
+                    <div className="text-center px-2">
+                      <p className="text-xs text-fg-subtle leading-relaxed">
                         Can&apos;t find the email? Check your spam folder or try again in a moment.
                       </p>
                     </div>
@@ -274,7 +274,7 @@ function SignInForm() {
                       setError(null);
                     }}
                     variant="ghost" 
-                    className="w-full"
+                    className="w-full h-12 sm:h-10 text-sm sm:text-sm font-medium"
                   >
                     Use a different email
                   </Button>
@@ -282,14 +282,14 @@ function SignInForm() {
               </div>
             ) : (
               /* Form State */
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-4">
                 {error && (
-                  <div className="bg-danger/10 border border-danger/20 rounded-lg p-3">
+                  <div className="bg-danger/10 border border-danger/20 rounded-lg p-3 sm:p-3">
                     <div className="flex items-start gap-2">
                       <svg className="h-4 w-4 text-danger mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <p className="text-sm text-danger">{error}</p>
+                      <p className="text-sm text-danger leading-relaxed">{error}</p>
                     </div>
                   </div>
                 )}
@@ -306,7 +306,7 @@ function SignInForm() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     disabled={isLoading}
-                    className="bg-elev border-border focus:border-brand focus:ring-brand"
+                    className="bg-elev border-border focus:border-brand focus:ring-brand h-12 sm:h-9 text-base sm:text-sm"
                     autoComplete="email"
                     autoFocus
                   />
@@ -314,7 +314,7 @@ function SignInForm() {
 
                 <Button 
                   type="submit" 
-                  className="w-full bg-brand hover:bg-brand/90 text-white"
+                  className="w-full bg-brand hover:bg-brand/90 text-white h-12 sm:h-10 text-base sm:text-sm font-medium"
                   disabled={isLoading || !email.trim()}
                 >
                   {isLoading ? (
@@ -346,7 +346,7 @@ function SignInForm() {
                   onClick={handleGoogleSignIn}
                   disabled={isGoogleLoading}
                   variant="secondary"
-                  className="w-full bg-surface text-fg border-border hover:bg-elev hover:border-border/80 transition-all duration-200"
+                  className="w-full bg-surface text-fg border-border hover:bg-elev hover:border-border/80 transition-all duration-200 h-12 sm:h-10 text-base sm:text-sm font-medium"
                 >
                   {isGoogleLoading ? (
                     <div className="flex items-center gap-2">
@@ -357,9 +357,9 @@ function SignInForm() {
                       Signing in with Google...
                     </div>
                   ) : (
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 sm:gap-3">
                       {/* Google G Icon */}
-                      <svg className="h-5 w-5" viewBox="0 0 24 24">
+                      <svg className="h-5 w-5 sm:h-5 sm:w-5" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                         <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                         <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -375,14 +375,14 @@ function SignInForm() {
             {/* Help Link */}
             <div className="pt-4 border-t border-border">
               <details className="group">
-                <summary className="text-sm text-fg-muted hover:text-fg cursor-pointer list-none">
+                <summary className="text-sm text-fg-muted hover:text-fg cursor-pointer list-none py-2">
                   <span className="underline">Trouble receiving the email?</span>
                 </summary>
-                <div className="mt-3 p-3 bg-elev rounded-lg space-y-2 text-sm text-fg-muted">
-                  <p>• Check your spam or junk folder</p>
-                  <p>• Make sure you&apos;re checking the correct email address</p>
-                  <p>• Email delivery can sometimes be delayed (up to 5-10 minutes)</p>
-                  <p>• If you continue having issues, try using a different email address</p>
+                <div className="mt-3 p-3 sm:p-3 bg-elev rounded-lg space-y-2 text-sm text-fg-muted">
+                  <p className="leading-relaxed">• Check your spam or junk folder</p>
+                  <p className="leading-relaxed">• Make sure you&apos;re checking the correct email address</p>
+                  <p className="leading-relaxed">• Email delivery can sometimes be delayed (up to 5-10 minutes)</p>
+                  <p className="leading-relaxed">• If you continue having issues, try using a different email address</p>
                 </div>
               </details>
             </div>
@@ -390,8 +390,8 @@ function SignInForm() {
         </Card>
 
         {/* Footer */}
-        <div className="text-center text-xs text-fg-subtle">
-          <p>By continuing, you agree to our Terms of Service and Privacy Policy</p>
+        <div className="text-center text-xs text-fg-subtle px-4 sm:px-0">
+          <p className="leading-relaxed">By continuing, you agree to our Terms of Service and Privacy Policy</p>
         </div>
       </div>
     </main>

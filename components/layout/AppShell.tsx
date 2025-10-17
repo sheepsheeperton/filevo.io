@@ -91,7 +91,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main content - full width on mobile, flex-1 on desktop */}
       <div className="w-full lg:flex-1 lg:flex lg:flex-col min-h-screen">
         {/* Mobile header with hamburger menu */}
-        <header className="lg:hidden bg-surface border-b border-border px-4 py-3 flex items-center justify-between">
+        <header className="lg:hidden bg-surface border-b border-border px-4 py-2 flex items-center justify-between">
           <Button
             variant="ghost"
             size="sm"
@@ -102,12 +102,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </Button>
-          <Logo variant="combined" className="h-8" />
+          <Logo variant="combined" className="h-7" />
           <div className="w-9" /> {/* Spacer for centering */}
         </header>
 
         {/* Main content area - full width on mobile */}
-        <main className="bg-bg p-4 sm:p-6 lg:p-8 space-y-6 flex-1 w-full">
+        <main className="bg-bg px-4 py-3 sm:p-6 lg:p-8 space-y-6 flex-1 w-full">
           {children}
         </main>
       </div>

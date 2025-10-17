@@ -1,4 +1,3 @@
-import Logo from '@/components/brand/Logo';
 import { redirect } from 'next/navigation';
 
 export default async function Home({
@@ -8,19 +7,12 @@ export default async function Home({
 }) {
   const params = await searchParams;
   
-  // If there's a code parameter, redirect to auth callback
+  // If there's a code parameter, redirect to auth callback (for OAuth flows)
   if (params.code) {
     redirect(`/auth/callback?code=${params.code}&next=/dashboard`);
   }
 
-  return (
-    <main className="p-8">
-      <div className="flex items-center justify-between">
-        <Logo />
-        <a className="text-sm underline" href="/auth/sign-in">Sign in</a>
-      </div>
-      <h1 className="text-2xl font-semibold mt-8">Welcome to Filevo</h1>
-      <p className="text-gray-600">Secure document requests for property managers.</p>
-    </main>
-  );
+  // INTENTIONAL: Root URL redirects directly to sign-in for simplified entry experience
+  // This removes the need for a separate landing page and streamlines user onboarding
+  redirect('/auth/sign-in');
 }

@@ -16,9 +16,9 @@ export default function SignInPage() {
     setIsLoading(true);
     
     try {
-      // First test with simple API to verify basic functionality
-      console.log("Testing with simple API first...");
-      const response = await fetch('/api/test-magic-link', {
+      // Test with existing API that should definitely work
+      console.log("Testing with existing /api/debug-test API...");
+      const response = await fetch('/api/debug-test', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

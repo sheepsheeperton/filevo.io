@@ -55,8 +55,16 @@ function SignInForm() {
         throw new Error(`Ping API failed with status: ${pingResponse.status}`);
       }
       
-      const pingResult = await pingResponse.json();
-      console.log('Ping API result:', pingResult);
+      const pingText = await pingResponse.text();
+      console.log('Ping API raw response:', pingText);
+      
+      try {
+        const pingResult = JSON.parse(pingText);
+        console.log('Ping API parsed result:', pingResult);
+      } catch (parseError) {
+        console.error('Failed to parse ping response as JSON:', parseError);
+        console.log('Response appears to be HTML, not JSON');
+      }
       
       // Now test POST to ping API
       console.log('Testing ping POST...');
@@ -71,8 +79,16 @@ function SignInForm() {
         throw new Error(`Test API failed with status: ${testResponse.status}`);
       }
       
-      const testResult = await testResponse.json();
-      console.log('Test API result:', testResult);
+      const testText = await testResponse.text();
+      console.log('Test API raw response:', testText);
+      
+      try {
+        const testResult = JSON.parse(testText);
+        console.log('Test API parsed result:', testResult);
+      } catch (parseError) {
+        console.error('Failed to parse test response as JSON:', parseError);
+        throw new Error('Server returned HTML instead of JSON - deployment issue');
+      }
 
       // Now try the simple magic link API
       console.log('Test API works, trying simple magic link API...');

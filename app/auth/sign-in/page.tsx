@@ -41,10 +41,10 @@ function SignInForm() {
     setIsLoading(true);
 
     try {
-      console.log('Testing with basic API first...');
+      console.log('Testing with ultra-simple API first...');
       
-      // Test with basic API first
-      const pingResponse = await fetch('/api/basic', {
+      // Test with ultra-simple API first
+      const pingResponse = await fetch('/api/ultra-simple', {
         method: 'GET',
       });
       

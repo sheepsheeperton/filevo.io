@@ -31,7 +31,25 @@ export function ForgotPasswordForm({
     try {
       console.log("Attempting password reset for:", email);
       
-      // Try the simple password reset API first (fallback)
+      // First test basic connectivity
+      console.log("Testing basic API connectivity...");
+      const testResponse = await fetch('/api/test-simple', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ test: 'data' }),
+      });
+      
+      const testResult = await testResponse.json();
+      console.log("Basic API test result:", testResult);
+      
+      if (!testResult.success) {
+        throw new Error("Basic API connectivity failed");
+      }
+      
+      // Now try the password reset API
+      console.log("Basic API works, trying password reset...");
       const response = await fetch('/api/auth/simple-reset-password', {
         method: 'POST',
         headers: {

@@ -41,6 +41,9 @@ export function ForgotPasswordForm({
         body: JSON.stringify({ test: 'data' }),
       });
       
+      console.log("Test response status:", testResponse.status);
+      console.log("Test response ok:", testResponse.ok);
+      
       const testResult = await testResponse.json();
       console.log("Basic API test result:", testResult);
       
@@ -48,9 +51,25 @@ export function ForgotPasswordForm({
         throw new Error("Basic API connectivity failed");
       }
       
-      // Now try the password reset API
-      console.log("Basic API works, trying password reset...");
-      const response = await fetch('/api/auth/simple-reset-password', {
+      // Test ultra-simple API directly
+      console.log("Testing ultra-simple API directly...");
+      const ultraTestResponse = await fetch('/api/auth/ultra-simple-reset', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: 'test@example.com' }),
+      });
+      
+      console.log("Ultra-simple test response status:", ultraTestResponse.status);
+      console.log("Ultra-simple test response ok:", ultraTestResponse.ok);
+      
+      const ultraTestResult = await ultraTestResponse.json();
+      console.log("Ultra-simple test result:", ultraTestResult);
+      
+      // Now try the ultra-simple password reset API
+      console.log("Basic API works, trying ultra-simple password reset...");
+      const response = await fetch('/api/auth/ultra-simple-reset', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

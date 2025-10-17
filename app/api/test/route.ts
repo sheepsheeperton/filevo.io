@@ -1,7 +1,19 @@
+import { NextResponse } from 'next/server';
+
 export async function GET() {
-  return Response.json({ message: "API is working" });
+  console.log('GET /api/test called');
+  return NextResponse.json({ 
+    message: "API is working",
+    timestamp: new Date().toISOString(),
+    method: "GET"
+  });
 }
 
 export async function POST() {
-  return Response.json({ message: "POST is working" });
+  console.log('POST /api/test called');
+  return NextResponse.json({ 
+    message: "POST is working",
+    timestamp: new Date().toISOString(),
+    method: "POST"
+  });
 }

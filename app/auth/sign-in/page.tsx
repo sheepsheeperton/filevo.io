@@ -18,7 +18,7 @@ function SignInForm() {
 
   // Check for error parameter from magic link verification
   useEffect(() => {
-    const errorParam = searchParams.get('error');
+    const errorParam = searchParams?.get('error');
     if (errorParam) {
       setError(decodeURIComponent(errorParam));
     }
@@ -41,10 +41,10 @@ function SignInForm() {
     setIsLoading(true);
 
     try {
-      console.log('Testing with ultra-simple test API first...');
+      console.log('Testing with basic API first...');
       
-      // Test with ultra-simple test API first
-      const pingResponse = await fetch('/api/test', {
+      // Test with basic API first
+      const pingResponse = await fetch('/api/basic', {
         method: 'GET',
       });
       

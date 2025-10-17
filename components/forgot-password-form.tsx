@@ -31,13 +31,19 @@ export function ForgotPasswordForm({
     setError(null);
 
     try {
+      console.log("Attempting password reset for:", email);
+      
       // The url which will be included in the email. This URL needs to be configured in your redirect URLs in the Supabase dashboard at https://supabase.com/dashboard/project/_/auth/url-configuration
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/update-password`,
       });
+      
+      console.log("Password reset response:", { data, error });
+      
       if (error) throw error;
       setSuccess(true);
     } catch (error: unknown) {
+      console.error("Password reset error:", error);
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setIsLoading(false);
@@ -52,11 +58,31 @@ export function ForgotPasswordForm({
             <CardTitle className="text-2xl">Check Your Email</CardTitle>
             <CardDescription>Password reset instructions sent</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
               If you registered using your email and password, you will receive
               a password reset email.
             </p>
+            
+            <div className="rounded-lg border border-amber-200/20 bg-amber-50/5 p-4">
+              <h4 className="font-medium text-amber-100 mb-2">Not receiving the email?</h4>
+              <div className="text-sm text-amber-200/80 space-y-2">
+                <p>• Check your spam/junk folder</p>
+                <p>• Make sure you're checking the correct email address</p>
+                <p>• Email delivery can sometimes be delayed</p>
+                <p>• If you continue having issues, contact support</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-2">
+              <Button asChild variant="secondary" size="sm">
+                <Link href="/auth/login">Back to Login</Link>
+              </Button>
+              
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/">Return to Home</Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : (

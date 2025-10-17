@@ -60,22 +60,21 @@ html, body { background-color: hsl(var(--bg)); color: hsl(var(--fg)); }
 html, body { margin: 0; padding: 0; }
 a { color: inherit; }
 
-@layer base {
-  :root { 
-    --font-inter: "Inter", ui-sans-serif, system-ui; 
-    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular; 
-  }
-  .font-sans { font-family: var(--font-inter); }
-  .font-mono { font-family: var(--font-mono); }
-  
-  /* Accessibility - Focus States */
-  a:focus-visible,
-  button:focus-visible,
-  input:focus-visible,
-  textarea:focus-visible,
-  select:focus-visible,
-  [tabindex]:focus-visible {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 2px;
-  }
+/* Fonts */
+:root { 
+  --font-inter: "Inter", ui-sans-serif, system-ui; 
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular; 
+}
+.font-sans { font-family: var(--font-inter); }
+.font-mono { font-family: var(--font-mono); }
+
+/* Accessibility - Focus States */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }

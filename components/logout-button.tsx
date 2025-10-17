@@ -15,7 +15,7 @@ export function LogoutButton() {
       });
       
       // Force a full page reload to clear all state
-      window.location.href = "/auth/login";
+      window.location.href = "/auth/sign-in";
     } catch (error) {
       console.error("Logout error:", error);
       setIsLoading(false);

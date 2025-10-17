@@ -156,7 +156,7 @@ export function ForgotPasswordForm({
 
             <div className="flex flex-col gap-2 pt-2">
               <Button asChild variant="secondary" size="sm">
-                <Link href="/auth/login">Back to Login</Link>
+                <Link href="/auth/sign-in">Back to Sign In</Link>
               </Button>
               
               <Button asChild variant="ghost" size="sm">
@@ -196,7 +196,7 @@ export function ForgotPasswordForm({
               <div className="mt-4 text-center text-sm">
                 Already have an account?{" "}
                 <Link
-                  href="/auth/login"
+                  href="/auth/sign-in"
                   className="underline underline-offset-4"
                 >
                   Login

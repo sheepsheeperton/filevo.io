@@ -34,7 +34,7 @@ export function PropertiesPageClient({ properties }: PropertiesPageClientProps) 
         <div className="flex gap-2">
           <Button
             onClick={handleToggleEditMode}
-            variant={isEditMode ? "secondary" : "outline"}
+            variant={isEditMode ? "secondary" : "ghost"}
             className={isEditMode ? "bg-brand hover:bg-brand-600 text-white" : ""}
           >
             {isEditMode ? 'Exit Edit Mode' : 'Edit Properties'}

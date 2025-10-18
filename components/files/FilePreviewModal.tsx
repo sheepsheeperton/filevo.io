@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
@@ -39,7 +39,7 @@ export function FilePreviewModal({ file, isOpen, onClose }: FilePreviewModalProp
   const isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension || '');
   const isPdf = fileExtension === 'pdf';
 
-  const loadFile = async () => {
+  const loadFile = useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -63,13 +63,13 @@ export function FilePreviewModal({ file, isOpen, onClose }: FilePreviewModalProp
     } finally {
       setLoading(false);
     }
-  };
+  }, [file.storage_path]);
 
   useEffect(() => {
     if (isOpen && !signedUrl) {
       loadFile();
     }
-  }, [isOpen, signedUrl]);
+  }, [isOpen, signedUrl, loadFile]);
 
   const handleDownload = () => {
     if (signedUrl) {

@@ -23,9 +23,16 @@ async function simulateNotification(data: {
       requestTitle: data.request.title,
     });
 
+    // Generate upload links for each item
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://filevo.io';
+    const uploadLinks = data.items.map(item => ({
+      tag: item,
+      link: `${baseUrl}/r/${generateUploadToken()}`
+    }));
+
     // Send email via Resend
     if (data.notification.preferredChannel === 'email' || data.notification.preferredChannel === 'both') {
-      const emailContent = generateEmailContent(data.request.title, data.items);
+      const emailContent = generateEmailContent(data.request.title, data.items, uploadLinks);
       
       console.log('Attempting to send email via Resend:', {
         from: process.env.RESEND_FROM_EMAIL || 'noreply@filevo.io',
@@ -92,19 +99,83 @@ async function simulateNotification(data: {
   }
 }
 
-function generateEmailContent(title: string, items: string[]): string {
+function generateEmailContent(title: string, items: string[], uploadLinks: { tag: string; link: string }[]): string {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://filevo.io';
+  
   return `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #333;">Document Request: ${title}</h2>
-      <p>Hello,</p>
-      <p>You have received a new document request. Please upload the following documents:</p>
-      <ul>
-        ${items.map(item => `<li>${item}</li>`).join('')}
-      </ul>
-      <p>You can upload these documents using the secure links provided.</p>
-      <p>If you have any questions, please don't hesitate to reach out.</p>
-      <p>Best regards,<br>Property Management Team</p>
-    </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Document Request: ${title}</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 32px 24px; text-align: center;">
+          <img src="${baseUrl}/brand/filevo-icon.png" alt="Filevo" style="height: 48px; width: auto; margin-bottom: 16px;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600;">Document Request</h1>
+          <p style="color: #ffffff; margin: 8px 0 0 0; font-size: 16px; opacity: 0.9;">${title}</p>
+        </div>
+        
+        <!-- Content -->
+        <div style="padding: 32px 24px;">
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">Hello,</p>
+          
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
+            You have received a new document request. Please upload the following documents:
+          </p>
+          
+          <div style="background-color: #f9fafb; border-radius: 8px; padding: 24px; margin: 24px 0;">
+            <h3 style="color: #111827; font-size: 18px; font-weight: 600; margin: 0 0 16px 0;">Required Documents</h3>
+            <ul style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0; padding-left: 20px;">
+              ${items.map(item => `<li style="margin-bottom: 8px;">${item}</li>`).join('')}
+            </ul>
+          </div>
+          
+          <div style="margin: 32px 0;">
+            <h3 style="color: #111827; font-size: 18px; font-weight: 600; margin: 0 0 16px 0;">Upload Your Documents</h3>
+            ${uploadLinks.map(({ tag, link }) => `
+              <div style="margin-bottom: 16px;">
+                <p style="color: #374151; font-size: 14px; margin: 0 0 8px 0; font-weight: 500;">${tag}</p>
+                <a href="${link}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600; font-size: 14px; text-align: center; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+                  📁 Upload ${tag}
+                </a>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div style="background-color: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 16px; margin: 24px 0; border-radius: 0 8px 8px 0;">
+            <p style="color: #0c4a6e; font-size: 14px; margin: 0; font-weight: 500;">
+              💡 <strong>Accepted file types:</strong> PDF, DOC, DOCX, JPG, PNG, GIF (Max 10MB each)
+            </p>
+          </div>
+          
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 24px 0 0 0;">
+            If you have any questions or need assistance, please don't hesitate to reach out.
+          </p>
+          
+          <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 24px 0 0 0;">
+            Best regards,<br>
+            <strong style="color: #111827;">Property Management Team</strong>
+          </p>
+        </div>
+        
+        <!-- Footer -->
+        <div style="background-color: #f9fafb; padding: 24px; text-align: center; border-top: 1px solid #e5e7eb;">
+          <p style="color: #6b7280; font-size: 14px; margin: 0 0 8px 0;">
+            Powered by <strong style="color: #111827;">Filevo</strong>
+          </p>
+          <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+            Secure document collection and workflow automation
+          </p>
+        </div>
+        
+      </div>
+    </body>
+    </html>
   `;
 }
 

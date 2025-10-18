@@ -18,8 +18,25 @@ interface FileData {
       id: string;
       title: string;
       property_id: string;
-    }[];
-  }[];
+    }[] | {
+      id: string;
+      title: string;
+      property_id: string;
+    };
+  }[] | {
+    id: string;
+    tag: string;
+    status: string;
+    request: {
+      id: string;
+      title: string;
+      property_id: string;
+    }[] | {
+      id: string;
+      title: string;
+      property_id: string;
+    };
+  };
 }
 
 export function FilesList({ files }: { files: FileData[]; propertyId: string }) {
@@ -28,10 +45,12 @@ export function FilesList({ files }: { files: FileData[]; propertyId: string }) 
 
   // Group files by request
   const filesByRequest = files.reduce((acc, file) => {
-    const item = file.request_item[0];
+    // Handle both array and single object cases
+    const item = Array.isArray(file.request_item) ? file.request_item[0] : file.request_item;
     if (!item) return acc;
     
-    const request = item.request[0];
+    // Handle both array and single object cases for request
+    const request = Array.isArray(item.request) ? item.request[0] : item.request;
     if (!request) return acc;
     
     const requestId = request.id;
@@ -93,7 +112,8 @@ export function FilesList({ files }: { files: FileData[]; propertyId: string }) 
               <h3 className="font-medium mb-3">{title}</h3>
               <div className="space-y-2">
                 {requestFiles.map((file) => {
-                  const item = file.request_item[0];
+                  // Handle both array and single object cases
+                  const item = Array.isArray(file.request_item) ? file.request_item[0] : file.request_item;
                   if (!item) return null;
                   return (
                     <div

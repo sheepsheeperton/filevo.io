@@ -40,12 +40,26 @@ export function AIComposeModal({ onClose, onInsert, requestTitle, requestItems }
       }
 
       const data = await response.json();
-      setGeneratedEmail(data.email || '');
+      setGeneratedEmail(data.description || ''); // Use plain text description for insertion
       setGeneratedSMS(data.sms || '');
     } catch (err) {
       console.error('AI generation error:', err);
       setError('Failed to generate content. Please try again.');
       // Fallback content for demo
+      const plainTextDescription = `Document Request: ${requestTitle}
+
+Hello,
+
+You have received a new document request. Please upload the following documents:
+${requestItems.map(item => `• ${item}`).join('\n')}
+
+You can upload these documents using the secure links provided.
+
+If you have any questions, please don't hesitate to reach out.
+
+Best regards,
+Property Management Team`;
+
       setGeneratedEmail(`<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
   <h2 style="color: #333;">Document Request: ${requestTitle}</h2>
   <p>Hello,</p>
@@ -59,6 +73,9 @@ export function AIComposeModal({ onClose, onInsert, requestTitle, requestItems }
 </div>`);
 
       setGeneratedSMS(`Document Request: ${requestTitle}. Please upload: ${requestItems.join(', ')}. Use the secure links provided. Questions? Reply to this message.`);
+      
+      // Store plain text version for description insertion
+      setGeneratedEmail(plainTextDescription);
     } finally {
       setIsGenerating(false);
     }
@@ -106,7 +123,7 @@ export function AIComposeModal({ onClose, onInsert, requestTitle, requestItems }
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <Label className="text-sm font-medium">Generated Email</Label>
+                    <Label className="text-sm font-medium">Generated Description</Label>
                     <Button
                       onClick={handleInsertEmail}
                       variant="secondary"

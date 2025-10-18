@@ -110,9 +110,25 @@ export async function POST(request: NextRequest) {
       smsContent = `Document Request: ${requestTitle}. Please upload: ${requestItems.join(', ')}. Use the secure links provided. Questions? Reply to this message.`;
     }
 
+    // Generate plain text version for description field
+    const plainTextDescription = `Document Request: ${requestTitle}
+
+Hello,
+
+You have received a new document request. Please upload the following documents:
+${requestItems.map(item => `• ${item}`).join('\n')}
+
+You can upload these documents using the secure links provided.
+
+If you have any questions, please don't hesitate to reach out.
+
+Best regards,
+Property Management Team`;
+
     return NextResponse.json({
       email: emailContent,
       sms: smsContent,
+      description: plainTextDescription, // Plain text for description field
     });
 
   } catch (error) {

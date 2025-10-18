@@ -37,7 +37,11 @@ export function RequestForm({ propertyId }: { propertyId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [showAICompose, setShowAICompose] = useState(false);
   const [showSharePanel, setShowSharePanel] = useState(false);
-  const [createdRequest, setCreatedRequest] = useState<any>(null);
+  const [createdRequest, setCreatedRequest] = useState<{
+    id: string;
+    title: string;
+    request_items: Array<{ id: string; tag: string; upload_token: string }>;
+  } | null>(null);
 
   const addItem = () => {
     setItems([...items, { tag: '', id: Date.now().toString() }]);
@@ -57,7 +61,7 @@ export function RequestForm({ propertyId }: { propertyId: string }) {
     setRecipient(prev => ({ ...prev, [field]: value }));
   };
 
-  const updateNotification = (field: keyof NotificationData, value: any) => {
+  const updateNotification = (field: keyof NotificationData, value: boolean | string) => {
     setNotification(prev => ({ ...prev, [field]: value }));
   };
 

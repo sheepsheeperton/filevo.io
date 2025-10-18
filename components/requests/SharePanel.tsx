@@ -3,10 +3,13 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 
 interface SharePanelProps {
-  request: any;
+  request: {
+    id: string;
+    title: string;
+    request_items: Array<{ id: string; tag: string; upload_token: string }>;
+  };
   onClose: () => void;
   notificationSent: boolean;
 }
@@ -31,15 +34,15 @@ export function SharePanel({ request, onClose, notificationSent }: SharePanelPro
   };
 
   const copyAllLinks = async () => {
-    const allLinks = request.request_items?.map((item: any) => 
+    const allLinks = request.request_items?.map((item: { tag: string; upload_token: string }) => 
       `${item.tag}: ${window.location.origin}/r/${item.upload_token}`
     ).join('\n\n') || '';
     
     try {
       await navigator.clipboard.writeText(allLinks);
       // Show success feedback
-    } catch (err) {
-      console.error('Failed to copy all links:', err);
+    } catch (error) {
+      console.error('Failed to copy all links:', error);
     }
   };
 
@@ -81,7 +84,7 @@ export function SharePanel({ request, onClose, notificationSent }: SharePanelPro
             </div>
             
             <div className="space-y-3">
-              {request.request_items?.map((item: any) => (
+              {request.request_items?.map((item: { id: string; tag: string; upload_token: string }) => (
                 <div key={item.id} className="flex items-center gap-3 p-3 bg-elev rounded-lg">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{item.tag}</p>
@@ -107,7 +110,7 @@ export function SharePanel({ request, onClose, notificationSent }: SharePanelPro
             <ul className="text-xs text-fg-muted space-y-1">
               <li>• Share the upload links with the recipient</li>
               <li>• Recipients can upload documents using the secure links</li>
-              <li>• You'll receive notifications when documents are uploaded</li>
+              <li>• You&apos;ll receive notifications when documents are uploaded</li>
               <li>• Track progress in the requests section</li>
             </ul>
           </div>

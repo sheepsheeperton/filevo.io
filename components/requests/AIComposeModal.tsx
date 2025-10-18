@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 interface AIComposeModalProps {
@@ -43,7 +42,7 @@ export function AIComposeModal({ onClose, onInsert, requestTitle, requestItems }
       const data = await response.json();
       setGeneratedEmail(data.email || '');
       setGeneratedSMS(data.sms || '');
-    } catch (err) {
+    } catch (error) {
       setError('Failed to generate content. Please try again.');
       // Fallback content for demo
       setGeneratedEmail(`Hi there,

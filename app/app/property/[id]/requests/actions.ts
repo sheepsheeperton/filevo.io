@@ -13,7 +13,7 @@ function generateUploadToken(): string {
 async function simulateNotification(data: {
   recipient: { name: string; email: string; phone: string };
   notification: { notifyNow: boolean; preferredChannel: 'email' | 'sms' | 'both' };
-  request: any;
+  request: { id: string; title: string };
   items: string[];
 }) {
   try {

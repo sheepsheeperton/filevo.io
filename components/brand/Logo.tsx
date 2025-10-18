@@ -15,25 +15,18 @@ export default function Logo({ variant = "full", className }: Props) {
         <Image 
           src="/brand/filevo-icon.svg" 
           alt="Filevo" 
-          width={32} 
-          height={32} 
+          width={48} 
+          height={48} 
           priority 
           className="flex-shrink-0"
         />
-        <Image 
-          src="/brand/filevo-wordmark.svg" 
-          alt="Filevo" 
-          width={120} 
-          height={28} 
-          priority 
-          className="flex-shrink-0"
-        />
+        <span className="text-xl font-bold text-current">FILEVO.IO</span>
       </Link>
     );
   }
 
-  const src = variant === "icon" ? "/brand/filevo-icon.svg" : "/brand/filevo-wordmark.svg";
-  const size = variant === "icon" ? { w: 28, h: 28 } : { w: 120, h: 28 };
+  const src = "/brand/filevo-icon.svg";
+  const size = variant === "icon" ? { w: 48, h: 48 } : { w: 64, h: 64 };
 
   return (
     <Link 

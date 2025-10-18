@@ -388,7 +388,7 @@ export async function resendNotification(data: {
       .select(`
         id,
         title,
-        request_items(tag)
+        request_items(tag, upload_token)
       `)
       .eq('id', data.requestId)
       .single();
@@ -403,7 +403,7 @@ export async function resendNotification(data: {
       recipient: data.recipient,
       notification: data.notification,
       request: request,
-      items: request.request_items.map((item: { tag: string }) => item.tag),
+      items: request.request_items.map((item: { tag: string; upload_token: string }) => item.tag),
     });
 
     if (notificationResult.success) {

@@ -32,6 +32,8 @@ export async function getSignedUploadUrl({
   token: string;
 } | null> {
   try {
+    console.log('getSignedUploadUrl called with:', { propertyId, tag, fileName });
+    
     const db = await supabaseServer();
     
     // Sanitize filename
@@ -41,10 +43,14 @@ export async function getSignedUploadUrl({
     const id = ulid();
     const path = `${propertyId}/${tag}/${id}-${sanitized}`;
     
+    console.log('Generated path:', path);
+    
     // Generate signed upload URL
     const { data, error } = await db.storage
       .from(BUCKET_NAME)
       .createSignedUploadUrl(path);
+
+    console.log('Supabase storage response:', { data, error });
 
     if (error) {
       console.error('Error creating signed upload URL:', error);

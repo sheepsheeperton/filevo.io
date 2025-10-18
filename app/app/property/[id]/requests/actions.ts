@@ -119,7 +119,7 @@ function generateEmailContent(title: string, items: string[], uploadLinks: { tag
         
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 32px 24px; text-align: center;">
-          <img src="${baseUrl}/brand/filevo-icon.svg" alt="Filevo" style="height: 48px; width: auto; margin-bottom: 16px;">
+          <img src="${baseUrl}/brand/filevo-icon.png" alt="Filevo" style="height: 48px; width: auto; margin-bottom: 16px;">
           <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600;">Document Request</h1>
           <p style="color: #ffffff; margin: 8px 0 0 0; font-size: 16px; opacity: 0.9;">${title}</p>
         </div>

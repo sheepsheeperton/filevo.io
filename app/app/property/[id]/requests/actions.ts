@@ -10,12 +10,48 @@ function generateUploadToken(): string {
   return randomBytes(32).toString('base64url');
 }
 
+async function simulateNotification(data: {
+  recipient: { name: string; email: string; phone: string };
+  notification: { notifyNow: boolean; preferredChannel: 'email' | 'sms' | 'both' };
+  request: any;
+  items: string[];
+}) {
+  try {
+    // Simulate notification sending
+    console.log('Simulating notification:', {
+      recipient: data.recipient,
+      channel: data.notification.preferredChannel,
+      requestTitle: data.request.title,
+    });
+
+    // In a real implementation, you would:
+    // 1. Send email via your email provider (SendGrid, AWS SES, etc.)
+    // 2. Send SMS via your SMS provider (Twilio, AWS SNS, etc.)
+    // 3. Handle delivery status and errors
+
+    // For now, just simulate success
+    return { success: true };
+  } catch (error) {
+    console.error('Notification simulation failed:', error);
+    return { success: false, error: 'Failed to send notification' };
+  }
+}
+
 export async function createRequest(data: {
   propertyId: string;
   title: string;
   description?: string | null;
   dueDate?: string | null;
   items: string[];
+  recipient?: {
+    name: string;
+    email: string;
+    phone: string;
+  } | null;
+  notification?: {
+    notifyNow: boolean;
+    preferredChannel: 'email' | 'sms' | 'both';
+  } | null;
 }) {
   try {
     const user = await requireUser();
@@ -30,6 +66,11 @@ export async function createRequest(data: {
         description: data.description || null,
         due_date: data.dueDate || null,
         created_by: user.id,
+        recipient_name: data.recipient?.name || null,
+        recipient_email: data.recipient?.email || null,
+        recipient_phone: data.recipient?.phone || null,
+        notify_pref: data.notification?.preferredChannel || null,
+        notified_at: null, // Will be set if notification is sent
       })
       .select()
       .single();
@@ -56,6 +97,37 @@ export async function createRequest(data: {
       return { success: false, error: 'Failed to create request items' };
     }
 
+    // Handle messaging if notification is enabled
+    let notificationSent = false;
+    if (data.notification?.notifyNow && data.recipient) {
+      try {
+        const messagingEnabled = process.env.MESSAGING_SEND_ENABLED === 'true';
+        
+        if (messagingEnabled) {
+          // Simulate sending notifications
+          const notificationResult = await simulateNotification({
+            recipient: data.recipient,
+            notification: data.notification,
+            request: request,
+            items: data.items,
+          });
+
+          if (notificationResult.success) {
+            // Update notified_at timestamp
+            await db
+              .from('requests')
+              .update({ notified_at: new Date().toISOString() })
+              .eq('id', request.id);
+            
+            notificationSent = true;
+          }
+        }
+      } catch (error) {
+        console.error('Error sending notification:', error);
+        // Don't fail the request creation if notification fails
+      }
+    }
+
     // Log activity
     await logActivity({
       actor: user.id,
@@ -65,7 +137,14 @@ export async function createRequest(data: {
     });
 
     revalidatePath(`/app/property/${data.propertyId}/requests`);
-    return { success: true, data: request };
+    return { 
+      success: true, 
+      data: { 
+        ...request, 
+        request_items: items,
+        notification_sent: notificationSent 
+      } 
+    };
   } catch (error) {
     console.error('Exception in createRequest:', error);
     return { success: false, error: 'An unexpected error occurred' };

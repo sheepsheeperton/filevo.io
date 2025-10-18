@@ -23,7 +23,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen lg:flex">
+    <div className="h-screen lg:flex">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div 
@@ -34,13 +34,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside className={clsx(
-        "h-dvh bg-surface border-r border-border flex flex-col transition-transform duration-300 ease-in-out",
+        "bg-surface border-r border-border flex flex-col transition-transform duration-300 ease-in-out h-screen",
         // Desktop: always visible and takes space
         "lg:translate-x-0 lg:z-auto lg:block lg:relative lg:w-[260px] lg:sticky lg:top-0",
         // Mobile: slide in/out and doesn't take space when hidden
         sidebarOpen ? "translate-x-0 z-50" : "-translate-x-full z-50",
         // Fixed positioning on mobile only, hidden when closed
-        "fixed lg:relative w-64",
+        "fixed w-64",
         // Hide completely when closed on mobile to not take up space
         sidebarOpen ? "block" : "hidden lg:block"
       )}>

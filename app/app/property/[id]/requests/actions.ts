@@ -128,11 +128,12 @@ export async function createRequest(data: {
         description: data.description || null,
         due_date: data.dueDate || null,
         created_by: user.id,
-        recipient_name: data.recipient?.name || null,
-        recipient_email: data.recipient?.email || null,
-        recipient_phone: data.recipient?.phone || null,
-        notify_pref: data.notification?.preferredChannel || null,
-        notified_at: null, // Will be set if notification is sent
+        // TODO: Uncomment after running database migration
+        // recipient_name: data.recipient?.name || null,
+        // recipient_email: data.recipient?.email || null,
+        // recipient_phone: data.recipient?.phone || null,
+        // notify_pref: data.notification?.preferredChannel || null,
+        // notified_at: null, // Will be set if notification is sent
       })
       .select()
       .single();

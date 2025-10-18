@@ -3,13 +3,13 @@ import Image from "next/image";
 import Link from "next/link";
 import clsx from "clsx";
 
-type Props = { variant?: "icon" | "full" | "combined"; className?: string };
+type Props = { variant?: "icon" | "full" | "combined"; className?: string; href?: string };
 
-export default function Logo({ variant = "full", className }: Props) {
+export default function Logo({ variant = "full", className, href = "/" }: Props) {
   if (variant === "combined") {
     return (
       <Link 
-        href="/" 
+        href={href} 
         className={clsx("inline-flex items-center gap-3 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:hsl(var(--ring))] focus-visible:ring-offset-2", className)}
       >
         <Image 
@@ -30,7 +30,7 @@ export default function Logo({ variant = "full", className }: Props) {
 
   return (
     <Link 
-      href="/" 
+      href={href} 
       className={clsx("inline-flex items-center gap-2 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:hsl(var(--ring))] focus-visible:ring-offset-2", className)}
     >
       <Image src={src} alt="Filevo" width={size.w} height={size.h} priority />

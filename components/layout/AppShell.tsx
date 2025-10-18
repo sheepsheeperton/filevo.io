@@ -34,7 +34,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside className={clsx(
-        "h-dvh bg-surface border-r border-border p-4 flex flex-col gap-4 transition-transform duration-300 ease-in-out",
+        "h-dvh bg-surface border-r border-border p-4 flex flex-col transition-transform duration-300 ease-in-out",
         // Desktop: always visible and takes space
         "lg:translate-x-0 lg:z-auto lg:block lg:relative lg:w-[260px] lg:sticky lg:top-0",
         // Mobile: slide in/out and doesn't take space when hidden
@@ -44,8 +44,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         // Hide completely when closed on mobile to not take up space
         sidebarOpen ? "block" : "hidden lg:block"
       )}>
-        <div className="flex items-center justify-between">
-          <Logo variant="combined" />
+        <div className="flex items-center justify-between mb-4">
+          <Logo variant="combined" href="/dashboard" />
           {/* Close button for mobile */}
           <Button
             variant="ghost"
@@ -81,7 +81,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </ul>
         </nav>
         
-        <div className="space-y-3">
+        <div className="mt-auto space-y-3">
           <LogoutButton />
           <div className="flex items-center justify-between">
             <span className="text-xs text-fg-subtle">Theme</span>

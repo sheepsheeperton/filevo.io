@@ -128,19 +128,29 @@ export async function createRequest(data: {
         description: data.description || null,
         due_date: data.dueDate || null,
         created_by: user.id,
-        // TODO: Uncomment after running database migration
-        // recipient_name: data.recipient?.name || null,
-        // recipient_email: data.recipient?.email || null,
-        // recipient_phone: data.recipient?.phone || null,
-        // notify_pref: data.notification?.preferredChannel || null,
-        // notified_at: null, // Will be set if notification is sent
+        recipient_name: data.recipient?.name || null,
+        recipient_email: data.recipient?.email || null,
+        recipient_phone: data.recipient?.phone || null,
+        notify_pref: data.notification?.preferredChannel || null,
+        notified_at: null, // Will be set if notification is sent
       })
       .select()
       .single();
 
     if (requestError) {
       console.error('Error creating request:', requestError);
-      return { success: false, error: 'Failed to create request' };
+      console.error('Request data:', {
+        property_id: data.propertyId,
+        title: data.title,
+        description: data.description,
+        due_date: data.dueDate,
+        created_by: user.id,
+        recipient_name: data.recipient?.name,
+        recipient_email: data.recipient?.email,
+        recipient_phone: data.recipient?.phone,
+        notify_pref: data.notification?.preferredChannel,
+      });
+      return { success: false, error: `Failed to create request: ${requestError.message}` };
     }
 
     // Create request items with upload tokens
@@ -155,9 +165,10 @@ export async function createRequest(data: {
 
     if (itemsError) {
       console.error('Error creating request items:', itemsError);
+      console.error('Items data:', items);
       // Rollback: delete the request
       await db.from('requests').delete().eq('id', request.id);
-      return { success: false, error: 'Failed to create request items' };
+      return { success: false, error: `Failed to create request items: ${itemsError.message}` };
     }
 
     // Handle messaging if notification is enabled

@@ -2,7 +2,6 @@ import { supabaseServer } from '@/lib/supabase/server';
 import { requireUser } from '@/lib/auth';
 import AppShell from '@/components/layout/AppShell';
 import { Card, CardContent } from '@/components/ui/card';
-import { Stat } from '@/components/ui/Stat';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -35,7 +34,6 @@ export default async function DashboardPage() {
     .select('id, uploaded_at');
 
   // Calculate Property Manager KPIs
-  const totalProperties = properties?.length || 0;
   const today = new Date();
   const fiveDaysFromNow = new Date();
   fiveDaysFromNow.setDate(today.getDate() + 5);
@@ -74,7 +72,6 @@ export default async function DashboardPage() {
   }).length || 0;
 
   // Recent Uploads: files uploaded in last 7 days
-  const totalFiles = allFiles?.length || 0;
 
   // Get last 7 days of uploads for chart
   const sevenDaysAgo = new Date();

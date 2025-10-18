@@ -27,6 +27,14 @@ async function simulateNotification(data: {
     if (data.notification.preferredChannel === 'email' || data.notification.preferredChannel === 'both') {
       const emailContent = generateEmailContent(data.request.title, data.items);
       
+      console.log('Attempting to send email via Resend:', {
+        from: process.env.RESEND_FROM_EMAIL || 'noreply@filevo.io',
+        to: data.recipient.email,
+        subject: `Document Request: ${data.request.title}`,
+        hasApiKey: !!process.env.RESEND_API_KEY,
+        apiKeyLength: process.env.RESEND_API_KEY?.length || 0
+      });
+      
       const emailResponse = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -41,10 +49,15 @@ async function simulateNotification(data: {
         }),
       });
 
+      console.log('Resend API response status:', emailResponse.status);
+
       if (!emailResponse.ok) {
         const errorData = await emailResponse.json();
         console.error('Resend email failed:', errorData);
         return { success: false, error: 'Failed to send email notification' };
+      } else {
+        const successData = await emailResponse.json();
+        console.log('Resend email sent successfully:', successData);
       }
     }
 

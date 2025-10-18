@@ -45,21 +45,19 @@ export function AIComposeModal({ onClose, onInsert, requestTitle, requestItems }
     } catch (error) {
       setError('Failed to generate content. Please try again.');
       // Fallback content for demo
-      setGeneratedEmail(`Hi there,
+      setGeneratedEmail(`<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+  <h2 style="color: #333;">Document Request: ${requestTitle}</h2>
+  <p>Hello,</p>
+  <p>You have received a new document request. Please upload the following documents:</p>
+  <ul>
+    ${requestItems.map(item => `<li>${item}</li>`).join('')}
+  </ul>
+  <p>You can upload these documents using the secure links provided.</p>
+  <p>If you have any questions, please don't hesitate to reach out.</p>
+  <p>Best regards,<br>Property Management Team</p>
+</div>`);
 
-I hope this message finds you well. I'm reaching out regarding the document request for "${requestTitle}".
-
-Please upload the following documents:
-${requestItems.map(item => `• ${item}`).join('\n')}
-
-You can upload these documents using the secure link provided. If you have any questions or need assistance, please don't hesitate to reach out.
-
-Thank you for your prompt attention to this matter.
-
-Best regards,
-Property Management Team`);
-
-      setGeneratedSMS(`Hi! Please upload these documents for "${requestTitle}": ${requestItems.join(', ')}. Use the secure link provided. Questions? Reply to this message.`);
+      setGeneratedSMS(`Document Request: ${requestTitle}. Please upload: ${requestItems.join(', ')}. Use the secure links provided. Questions? Reply to this message.`);
     } finally {
       setIsGenerating(false);
     }

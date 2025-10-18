@@ -42,7 +42,8 @@ export function AIComposeModal({ onClose, onInsert, requestTitle, requestItems }
       const data = await response.json();
       setGeneratedEmail(data.email || '');
       setGeneratedSMS(data.sms || '');
-    } catch (error) {
+    } catch (err) {
+      console.error('AI generation error:', err);
       setError('Failed to generate content. Please try again.');
       // Fallback content for demo
       setGeneratedEmail(`<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

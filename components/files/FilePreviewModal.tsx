@@ -19,8 +19,25 @@ interface FilePreviewModalProps {
         id: string;
         title: string;
         property_id: string;
-      }[];
-    }[];
+      }[] | {
+        id: string;
+        title: string;
+        property_id: string;
+      };
+    }[] | {
+      id: string;
+      tag: string;
+      status: string;
+      request: {
+        id: string;
+        title: string;
+        property_id: string;
+      }[] | {
+        id: string;
+        title: string;
+        property_id: string;
+      };
+    };
   };
   isOpen: boolean;
   onClose: () => void;
@@ -31,8 +48,9 @@ export function FilePreviewModal({ file, isOpen, onClose }: FilePreviewModalProp
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const item = file.request_item[0];
-  const request = item?.request[0];
+  // Handle both array and single object cases
+  const item = Array.isArray(file.request_item) ? file.request_item[0] : file.request_item;
+  const request = item ? (Array.isArray(item.request) ? item.request[0] : item.request) : null;
 
   // Get file extension to determine file type
   const fileExtension = file.file_name.split('.').pop()?.toLowerCase();

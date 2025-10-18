@@ -31,6 +31,8 @@ async function simulateNotification(data: {
       link: `${baseUrl}/r/${item.upload_token}`
     }));
 
+    console.log('Generated upload links:', uploadLinks);
+
     // Send email via Resend
     if (data.notification.preferredChannel === 'email' || data.notification.preferredChannel === 'both') {
       const emailContent = generateEmailContent(data.request.title, data.items, uploadLinks);
@@ -240,12 +242,16 @@ export async function createRequest(data: {
     }
 
     // Create request items with upload tokens
-    const items = data.items.map((tag) => ({
-      request_id: request.id,
-      tag,
-      upload_token: generateUploadToken(),
-      status: 'pending' as const,
-    }));
+    const items = data.items.map((tag) => {
+      const token = generateUploadToken();
+      console.log(`Generated token for ${tag}:`, token);
+      return {
+        request_id: request.id,
+        tag,
+        upload_token: token,
+        status: 'pending' as const,
+      };
+    });
 
     const { error: itemsError } = await db.from('request_items').insert(items);
 

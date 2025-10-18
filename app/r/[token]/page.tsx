@@ -6,12 +6,15 @@ export default async function PublicUploadPage({ params }: { params: Promise<{ t
   const { token } = await params;
   const db = await supabaseServer();
   
-  const { data: item } = await db
+  console.log('Looking up token:', token);
+  
+  const { data: item, error } = await db
     .from('request_items')
     .select(`
       id,
       tag,
       status,
+      upload_token,
       request:requests!inner(
         id,
         title,
@@ -25,6 +28,8 @@ export default async function PublicUploadPage({ params }: { params: Promise<{ t
     `)
     .eq('upload_token', token)
     .single();
+
+  console.log('Query result:', { item, error });
 
   if (!item) {
     return (

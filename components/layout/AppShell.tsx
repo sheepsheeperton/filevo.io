@@ -34,7 +34,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside className={clsx(
-        "bg-surface border-r border-border flex flex-col transition-transform duration-300 ease-in-out h-screen",
+        "bg-surface border-r border-border flex flex-col transition-transform duration-300 ease-in-out h-screen relative",
         // Desktop: always visible and takes space
         "lg:translate-x-0 lg:z-auto lg:block lg:relative lg:w-[260px] lg:sticky lg:top-0",
         // Mobile: slide in/out and doesn't take space when hidden
@@ -63,7 +63,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
         
         {/* Navigation section with padding */}
-        <nav className="flex-1 px-4">
+        <nav className="flex-1 px-4 pb-24">
           <ul className="space-y-1">
             {nav.map((n) => {
               const active = pathname?.startsWith(n.href);
@@ -85,8 +85,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </ul>
         </nav>
         
-        {/* Footer section with padding - pushed to bottom */}
-        <div className="p-4 pt-0 space-y-3">
+        {/* Footer section with padding - absolutely positioned at bottom */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 space-y-3">
           <LogoutButton />
           <div className="flex items-center justify-between">
             <span className="text-xs text-fg-subtle">Theme</span>

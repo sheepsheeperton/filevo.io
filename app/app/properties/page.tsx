@@ -4,6 +4,7 @@ import AppShell from '@/components/layout/AppShell';
 import { Card, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import { PropertyForm } from '@/components/properties/PropertyForm';
+import { PropertyManagement } from '@/components/properties/PropertyManagement';
 
 export default async function PropertiesPage() {
   await requireUser();
@@ -30,27 +31,7 @@ export default async function PropertiesPage() {
         </div>
 
         {properties && properties.length > 0 ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {properties.map((property) => (
-              <Link
-                key={property.id}
-                href={`/app/property/${property.id}`}
-                className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:hsl(var(--ring))] focus-visible:ring-offset-2 rounded-2xl"
-              >
-                <Card className="hover:bg-elev transition-colors cursor-pointer h-full">
-                  <CardContent>
-                    <div className="font-medium text-lg">{property.name}</div>
-                    <div className="text-sm text-fg-muted mt-2">
-                      {property.address || 'No address specified'}
-                    </div>
-                    <div className="text-xs text-fg-subtle mt-3">
-                      Added {new Date(property.created_at).toLocaleDateString()}
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
+          <PropertyManagement properties={properties} />
         ) : (
           <Card>
             <CardContent className="py-16">

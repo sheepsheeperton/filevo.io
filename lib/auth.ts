@@ -7,7 +7,7 @@ export async function requireUser() {
   if (!user) redirect('/auth/sign-in');
   
   // Ensure user has a profile
-  const { data: profile, error: profileError } = await db
+  const { error: profileError } = await db
     .from('profiles')
     .select('id')
     .eq('id', user.id)

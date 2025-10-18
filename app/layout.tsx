@@ -3,7 +3,13 @@ import type { Metadata } from 'next';
 import { inter, mono } from './fonts';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 
-export const metadata: Metadata = { title: 'Filevo', description: 'Document requests for property managers' };
+export const metadata: Metadata = { 
+  title: 'Filevo', 
+  description: 'Document requests for property managers',
+  icons: {
+    icon: '/brand/filevo-icon.svg',
+  },
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

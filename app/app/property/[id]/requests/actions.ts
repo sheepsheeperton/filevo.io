@@ -24,7 +24,8 @@ async function simulateNotification(data: {
     });
 
     // Generate upload links for each item using actual tokens
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.filevo.io';
+    // Always use production URL for email links, not localhost
+    const baseUrl = 'https://www.filevo.io';
     const uploadLinks = data.request.request_items.map(item => ({
       tag: item.tag,
       link: `${baseUrl}/r/${item.upload_token}`
@@ -100,7 +101,8 @@ async function simulateNotification(data: {
 }
 
 function generateEmailContent(title: string, items: string[], uploadLinks: { tag: string; link: string }[]): string {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.filevo.io';
+  // Always use production URL for email content, not localhost
+  const baseUrl = 'https://www.filevo.io';
   
   return `
     <!DOCTYPE html>
@@ -115,7 +117,7 @@ function generateEmailContent(title: string, items: string[], uploadLinks: { tag
         
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 32px 24px; text-align: center;">
-          <img src="${baseUrl}/brand/filevo-icon.png" alt="Filevo" style="height: 48px; width: auto; margin-bottom: 16px;">
+          <img src="${baseUrl}/brand/filevo-icon.svg" alt="Filevo" style="height: 48px; width: auto; margin-bottom: 16px;">
           <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600;">Document Request</h1>
           <p style="color: #ffffff; margin: 8px 0 0 0; font-size: 16px; opacity: 0.9;">${title}</p>
         </div>

@@ -16,7 +16,7 @@ export default async function DashboardPage() {
     .select('id, name, address, created_at')
     .order('created_at', { ascending: false });
 
-  // Get all requests
+  // Get all requests with detailed information
   const { data: requests } = await db
     .from('requests')
     .select(`
@@ -25,7 +25,7 @@ export default async function DashboardPage() {
       due_date, 
       property_id, 
       created_at,
-      request_items(id, status)
+      request_items(id, status, tag)
     `)
     .order('created_at', { ascending: false });
 
@@ -34,24 +34,47 @@ export default async function DashboardPage() {
     .from('files')
     .select('id, uploaded_at');
 
-  // Calculate KPIs
+  // Calculate Property Manager KPIs
   const totalProperties = properties?.length || 0;
+  const today = new Date();
+  const fiveDaysFromNow = new Date();
+  fiveDaysFromNow.setDate(today.getDate() + 5);
   
-  // Projects completed: requests where ALL items are received
+  // Overdue Requests: requests past their due date with pending items
+  const overdueRequests = requests?.filter((r) => {
+    if (!r.due_date) return false;
+    const dueDate = new Date(r.due_date);
+    const items = r.request_items || [];
+    return dueDate < today && items.some((i) => i.status === 'pending');
+  }).length || 0;
+
+  // Upcoming Deadlines: requests due within next 5 days
+  const upcomingDeadlines = requests?.filter((r) => {
+    if (!r.due_date) return false;
+    const dueDate = new Date(r.due_date);
+    return dueDate >= today && dueDate <= fiveDaysFromNow;
+  }).length || 0;
+
+  // Pending Documents: total outstanding required items across all requests
+  const pendingDocuments = requests?.reduce((total, r) => {
+    const items = r.request_items || [];
+    return total + items.filter((i) => i.status === 'pending').length;
+  }, 0) || 0;
+
+  // Requests Completed: requests where ALL items are received
   const completedRequests = requests?.filter((r) => {
     const items = r.request_items || [];
     return items.length > 0 && items.every((i) => i.status === 'received');
   }).length || 0;
 
-  // In-progress: requests with at least 1 pending item
+  // In Progress: requests with at least 1 pending item
   const inProgressRequests = requests?.filter((r) => {
     const items = r.request_items || [];
     return items.some((i) => i.status === 'pending');
   }).length || 0;
 
-  // Time saved: heuristic of 0.25 hours per received file
+  // Recent Uploads: files uploaded in last 7 days
   const totalFiles = allFiles?.length || 0;
-  const timeSaved = (totalFiles * 0.25).toFixed(1);
 
   // Get last 7 days of uploads for chart
   const sevenDaysAgo = new Date();
@@ -83,7 +106,7 @@ export default async function DashboardPage() {
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-3xl font-semibold">Dashboard</h1>
-            <p className="text-fg-muted mt-2">Track your properties, document requests, and time savings at a glance</p>
+            <p className="text-fg-muted mt-2">Monitor your properties, deadlines, and document collection progress</p>
           </div>
           <div className="flex gap-2">
             <Link href="/app/activity">
@@ -95,32 +118,103 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Stat 
-            label="Projects Completed" 
-            value={String(completedRequests)} 
-            hint={`${totalProperties} ${totalProperties === 1 ? 'property' : 'properties'} total`}
-            description="Document requests where all items have been received"
-          />
-          <Stat 
-            label="In Progress" 
-            value={String(inProgressRequests)} 
-            hint={inProgressRequests > 0 ? `${inProgressRequests} ${inProgressRequests === 1 ? 'request' : 'requests'} pending` : 'All caught up'}
-            description="Active requests with at least one pending item"
-          />
-          <Stat 
-            label="Time Saved" 
-            value={`${timeSaved} hrs`} 
-            hint={`${totalFiles} ${totalFiles === 1 ? 'file' : 'files'} received`}
-            description="Estimated time saved collecting documents (0.25h per file)"
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Overdue Requests - Red */}
+          <div className="rounded-2xl bg-surface border border-border p-6">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+              <div className="text-sm text-fg-subtle">Overdue Requests</div>
+            </div>
+            <div className="mt-2 text-3xl font-semibold tracking-tight text-red-500">{overdueRequests}</div>
+            <div className="mt-2 text-xs text-fg-muted">
+              {overdueRequests === 0 ? 'All requests on track' : `${overdueRequests} ${overdueRequests === 1 ? 'request' : 'requests'} past due`}
+            </div>
+            <div className="mt-3 pt-3 border-t border-border text-xs text-fg-subtle leading-relaxed">
+              Requests past their due date with pending documents
+            </div>
+          </div>
+
+          {/* Upcoming Deadlines - Orange */}
+          <div className="rounded-2xl bg-surface border border-border p-6">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+              <div className="text-sm text-fg-subtle">Upcoming Deadlines</div>
+            </div>
+            <div className="mt-2 text-3xl font-semibold tracking-tight text-orange-500">{upcomingDeadlines}</div>
+            <div className="mt-2 text-xs text-fg-muted">
+              {upcomingDeadlines === 0 ? 'No deadlines this week' : `Due within 5 days`}
+            </div>
+            <div className="mt-3 pt-3 border-t border-border text-xs text-fg-subtle leading-relaxed">
+              Requests with deadlines approaching soon
+            </div>
+          </div>
+
+          {/* Pending Documents - Orange */}
+          <div className="rounded-2xl bg-surface border border-border p-6">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+              <div className="text-sm text-fg-subtle">Pending Documents</div>
+            </div>
+            <div className="mt-2 text-3xl font-semibold tracking-tight text-orange-500">{pendingDocuments}</div>
+            <div className="mt-2 text-xs text-fg-muted">
+              {pendingDocuments === 0 ? 'All documents received' : `${pendingDocuments} ${pendingDocuments === 1 ? 'document' : 'documents'} outstanding`}
+            </div>
+            <div className="mt-3 pt-3 border-t border-border text-xs text-fg-subtle leading-relaxed">
+              Total outstanding required items across all requests
+            </div>
+          </div>
+
+          {/* Requests Completed - Green */}
+          <div className="rounded-2xl bg-surface border border-border p-6">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <div className="text-sm text-fg-subtle">Requests Completed</div>
+            </div>
+            <div className="mt-2 text-3xl font-semibold tracking-tight text-green-500">{completedRequests}</div>
+            <div className="mt-2 text-xs text-fg-muted">
+              {completedRequests === 0 ? 'No completed requests yet' : `${completedRequests} ${completedRequests === 1 ? 'request' : 'requests'} finished`}
+            </div>
+            <div className="mt-3 pt-3 border-t border-border text-xs text-fg-subtle leading-relaxed">
+              Document requests where all items have been received
+            </div>
+          </div>
+
+          {/* In Progress - Blue */}
+          <div className="rounded-2xl bg-surface border border-border p-6">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <div className="text-sm text-fg-subtle">In Progress</div>
+            </div>
+            <div className="mt-2 text-3xl font-semibold tracking-tight text-blue-500">{inProgressRequests}</div>
+            <div className="mt-2 text-xs text-fg-muted">
+              {inProgressRequests === 0 ? 'No active requests' : `${inProgressRequests} ${inProgressRequests === 1 ? 'request' : 'requests'} active`}
+            </div>
+            <div className="mt-3 pt-3 border-t border-border text-xs text-fg-subtle leading-relaxed">
+              Active requests with at least one pending item
+            </div>
+          </div>
+
+          {/* Recent Uploads - Green */}
+          <div className="rounded-2xl bg-surface border border-border p-6">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <div className="text-sm text-fg-subtle">Recent Uploads</div>
+            </div>
+            <div className="mt-2 text-3xl font-semibold tracking-tight text-green-500">{recentUploads.length}</div>
+            <div className="mt-2 text-xs text-fg-muted">
+              {recentUploads.length === 0 ? 'No uploads this week' : `In the last 7 days`}
+            </div>
+            <div className="mt-3 pt-3 border-t border-border text-xs text-fg-subtle leading-relaxed">
+              Files uploaded in the past week
+            </div>
+          </div>
         </div>
 
         {/* 7-Day Uploads Chart */}
         <Card>
           <CardContent>
-            <h2 className="text-lg font-semibold mb-1">Uploads (Last 7 Days)</h2>
-            <p className="text-xs text-fg-muted mb-6">Visual breakdown of daily file upload activity</p>
+            <h2 className="text-lg font-semibold mb-1">Recent Upload Activity</h2>
+            <p className="text-xs text-fg-muted mb-6">Daily file uploads over the past week</p>
             <div className="h-48 flex items-end justify-between gap-2">
               {uploadsByDay.map((day, i) => {
                 const height = maxUploads > 0 ? (day.count / maxUploads) * 100 : 0;

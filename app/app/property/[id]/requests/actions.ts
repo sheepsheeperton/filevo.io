@@ -13,7 +13,7 @@ function generateUploadToken(): string {
 async function simulateNotification(data: {
   recipient: { name: string; email: string; phone: string };
   notification: { notifyNow: boolean; preferredChannel: 'email' | 'sms' | 'both' };
-  request: { id: string; title: string };
+  request: { id: string; title: string; request_items: Array<{ tag: string; upload_token: string }> };
   items: string[];
 }) {
   try {
@@ -23,11 +23,11 @@ async function simulateNotification(data: {
       requestTitle: data.request.title,
     });
 
-    // Generate upload links for each item
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://filevo.io';
-    const uploadLinks = data.items.map(item => ({
-      tag: item,
-      link: `${baseUrl}/r/${generateUploadToken()}`
+    // Generate upload links for each item using actual tokens
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.filevo.io';
+    const uploadLinks = data.request.request_items.map(item => ({
+      tag: item.tag,
+      link: `${baseUrl}/r/${item.upload_token}`
     }));
 
     // Send email via Resend
@@ -100,7 +100,7 @@ async function simulateNotification(data: {
 }
 
 function generateEmailContent(title: string, items: string[], uploadLinks: { tag: string; link: string }[]): string {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://filevo.io';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.filevo.io';
   
   return `
     <!DOCTYPE html>
@@ -272,7 +272,7 @@ export async function createRequest(data: {
           const notificationResult = await simulateNotification({
             recipient: data.recipient,
             notification: data.notification,
-            request: request,
+            request: { ...request, request_items: items },
             items: data.items,
           });
 

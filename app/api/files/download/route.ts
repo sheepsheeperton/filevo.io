@@ -8,13 +8,20 @@ export async function POST(req: NextRequest) {
     
     const { storagePath } = await req.json();
 
+    console.log('Download request for storage path:', storagePath);
+
     if (!storagePath) {
+      console.error('Missing storage path');
       return new Response('Missing storage path', { status: 400 });
     }
 
+    console.log('Generating signed download URL...');
     const signedUrl = await getSignedDownloadUrl(storagePath);
 
+    console.log('Signed download URL result:', signedUrl);
+
     if (!signedUrl) {
+      console.error('Failed to generate download URL');
       return new Response('Failed to generate download URL', { status: 500 });
     }
 

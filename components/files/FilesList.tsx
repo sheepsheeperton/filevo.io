@@ -52,7 +52,10 @@ export function FilesList({ files }: { files: FileData[]; propertyId: string }) 
         body: JSON.stringify({ storagePath }),
       });
 
-      if (!res.ok) throw new Error('Download failed');
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Download failed');
+      }
 
       const { signedUrl } = await res.json();
       
@@ -60,7 +63,33 @@ export function FilesList({ files }: { files: FileData[]; propertyId: string }) 
       window.open(signedUrl, '_blank');
     } catch (error) {
       console.error('Download error:', error);
-      alert('Failed to download file');
+      alert(`Failed to download file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setDownloading(null);
+    }
+  };
+
+  const handleView = async (fileId: string, storagePath: string) => {
+    setDownloading(fileId);
+    try {
+      const res = await fetch('/api/files/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storagePath }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'View failed');
+      }
+
+      const { signedUrl } = await res.json();
+      
+      // Open in new tab for viewing
+      window.open(signedUrl, '_blank');
+    } catch (error) {
+      console.error('View error:', error);
+      alert(`Failed to view file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setDownloading(null);
     }
@@ -111,14 +140,24 @@ export function FilesList({ files }: { files: FileData[]; propertyId: string }) 
                           </div>
                         </div>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDownload(file.id, file.storage_path)}
-                        disabled={downloading === file.id}
-                      >
-                        {downloading === file.id ? 'Loading...' : 'Download'}
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleView(file.id, file.storage_path)}
+                          disabled={downloading === file.id}
+                        >
+                          {downloading === file.id ? 'Loading...' : 'View'}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => handleDownload(file.id, file.storage_path)}
+                          disabled={downloading === file.id}
+                        >
+                          Download
+                        </Button>
+                      </div>
                     </div>
                   );
                 })}

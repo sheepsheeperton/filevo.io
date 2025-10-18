@@ -76,11 +76,15 @@ export async function getSignedDownloadUrl(
   storagePath: string
 ): Promise<string | null> {
   try {
+    console.log('getSignedDownloadUrl called with path:', storagePath);
+    
     const db = await supabaseServer();
     
     const { data, error } = await db.storage
       .from(BUCKET_NAME)
       .createSignedUrl(storagePath, DOWNLOAD_EXPIRES_IN);
+
+    console.log('Supabase signed URL response:', { data, error });
 
     if (error) {
       console.error('Error creating signed download URL:', error);

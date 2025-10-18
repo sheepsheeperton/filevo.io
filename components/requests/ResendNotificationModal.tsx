@@ -34,7 +34,7 @@ interface ResendNotificationModalProps {
   onClose: () => void;
 }
 
-export function ResendNotificationModal({ request, propertyId, onClose }: ResendNotificationModalProps) {
+export function ResendNotificationModal({ request, onClose }: ResendNotificationModalProps) {
   const [recipientName, setRecipientName] = useState(request.recipient_name || '');
   const [recipientEmail, setRecipientEmail] = useState(request.recipient_email || '');
   const [recipientPhone, setRecipientPhone] = useState(request.recipient_phone || '');
@@ -75,7 +75,8 @@ export function ResendNotificationModal({ request, propertyId, onClose }: Resend
       } else {
         setError(result.error || 'Failed to send notification');
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Resend notification error:', error);
       setError('An unexpected error occurred');
     } finally {
       setIsLoading(false);

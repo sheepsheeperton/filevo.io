@@ -332,7 +332,7 @@ export async function resendNotification(data: {
       recipient: data.recipient,
       notification: data.notification,
       request: request,
-      items: request.request_items.map((item: any) => item.tag),
+      items: request.request_items.map((item: { tag: string }) => item.tag),
     });
 
     if (notificationResult.success) {

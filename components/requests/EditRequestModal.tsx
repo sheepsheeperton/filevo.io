@@ -35,7 +35,7 @@ interface EditRequestModalProps {
   onClose: () => void;
 }
 
-export function EditRequestModal({ request, propertyId, onClose }: EditRequestModalProps) {
+export function EditRequestModal({ request, onClose }: EditRequestModalProps) {
   const [title, setTitle] = useState(request.title);
   const [description, setDescription] = useState(request.description || '');
   const [dueDate, setDueDate] = useState(request.due_date || '');
@@ -70,7 +70,8 @@ export function EditRequestModal({ request, propertyId, onClose }: EditRequestMo
       } else {
         setError(result.error || 'Failed to update request');
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Edit request error:', error);
       setError('An unexpected error occurred');
     } finally {
       setIsLoading(false);

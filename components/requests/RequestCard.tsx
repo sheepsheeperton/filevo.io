@@ -126,7 +126,6 @@ export function RequestCard({ request, propertyId }: { request: Request; propert
     {showEditModal && (
       <EditRequestModal
         request={request}
-        propertyId={propertyId}
         onClose={() => setShowEditModal(false)}
       />
     )}
@@ -135,7 +134,6 @@ export function RequestCard({ request, propertyId }: { request: Request; propert
     {showResendModal && (
       <ResendNotificationModal
         request={request}
-        propertyId={propertyId}
         onClose={() => setShowResendModal(false)}
       />
     )}

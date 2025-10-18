@@ -21,6 +21,11 @@ export default async function PropertyRequestsPage({
       description,
       due_date,
       created_at,
+      recipient_name,
+      recipient_email,
+      recipient_phone,
+      notify_pref,
+      notified_at,
       request_items (
         id,
         tag,

@@ -1,4 +1,10 @@
+'use client';
+
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { EditRequestModal } from './EditRequestModal';
+import { ResendNotificationModal } from './ResendNotificationModal';
 
 interface RequestItem {
   id: string;
@@ -14,16 +20,25 @@ interface Request {
   due_date: string | null;
   created_at: string;
   request_items: RequestItem[];
+  recipient_name?: string | null;
+  recipient_email?: string | null;
+  recipient_phone?: string | null;
+  notify_pref?: string | null;
+  notified_at?: string | null;
 }
 
-export function RequestCard({ request }: { request: Request; propertyId: string }) {
+export function RequestCard({ request, propertyId }: { request: Request; propertyId: string }) {
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showResendModal, setShowResendModal] = useState(false);
+  
   const pending = request.request_items.filter((i) => i.status === 'pending').length;
   const received = request.request_items.filter((i) => i.status === 'received').length;
   const total = request.request_items.length;
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
 
   return (
+    <>
     <Card>
       <CardContent>
         <div className="flex items-start justify-between mb-4">
@@ -38,9 +53,27 @@ export function RequestCard({ request }: { request: Request; propertyId: string 
               </p>
             )}
           </div>
-          <div className="text-sm text-right">
-            <div className="font-mono text-fg-subtle">
-              {received}/{total} received
+          <div className="flex items-center gap-2">
+            <div className="text-sm text-right mr-4">
+              <div className="font-mono text-fg-subtle">
+                {received}/{total} received
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowEditModal(true)}
+              >
+                Edit
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowResendModal(true)}
+              >
+                Resend
+              </Button>
             </div>
           </div>
         </div>
@@ -82,9 +115,31 @@ export function RequestCard({ request }: { request: Request; propertyId: string 
           {pending > 0 && (
             <span className="text-warning">{pending} pending</span>
           )}
+          {request.notified_at && (
+            <span className="text-success">Notified</span>
+          )}
         </div>
       </CardContent>
     </Card>
+
+    {/* Edit Modal */}
+    {showEditModal && (
+      <EditRequestModal
+        request={request}
+        propertyId={propertyId}
+        onClose={() => setShowEditModal(false)}
+      />
+    )}
+
+    {/* Resend Modal */}
+    {showResendModal && (
+      <ResendNotificationModal
+        request={request}
+        propertyId={propertyId}
+        onClose={() => setShowResendModal(false)}
+      />
+    )}
+  </>
   );
 }
 

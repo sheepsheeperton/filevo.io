@@ -246,6 +246,121 @@ export async function createRequest(data: {
   }
 }
 
+export async function updateRequest(data: {
+  requestId: string;
+  title: string;
+  description?: string | null;
+  dueDate?: string | null;
+  recipient?: {
+    name: string | null;
+    email: string | null;
+    phone: string | null;
+  } | null;
+}) {
+  try {
+    const user = await requireUser();
+    const db = await supabaseServer();
+
+    // Update request
+    const { error: requestError } = await db
+      .from('requests')
+      .update({
+        title: data.title,
+        description: data.description || null,
+        due_date: data.dueDate || null,
+        recipient_name: data.recipient?.name || null,
+        recipient_email: data.recipient?.email || null,
+        recipient_phone: data.recipient?.phone || null,
+      })
+      .eq('id', data.requestId);
+
+    if (requestError) {
+      console.error('Error updating request:', requestError);
+      return { success: false, error: 'Failed to update request' };
+    }
+
+    // Log activity
+    await logActivity({
+      actor: user.id,
+      action: 'updated',
+      entity: 'request',
+      entity_id: data.requestId,
+    });
+
+    revalidatePath(`/app/property/${data.requestId}/requests`);
+    return { success: true };
+  } catch (error) {
+    console.error('Exception in updateRequest:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+export async function resendNotification(data: {
+  requestId: string;
+  recipient: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  notification: {
+    notifyNow: boolean;
+    preferredChannel: 'email' | 'sms' | 'both';
+  };
+}) {
+  try {
+    const user = await requireUser();
+    const db = await supabaseServer();
+
+    // Get the request details
+    const { data: request, error: requestError } = await db
+      .from('requests')
+      .select(`
+        id,
+        title,
+        request_items(tag)
+      `)
+      .eq('id', data.requestId)
+      .single();
+
+    if (requestError || !request) {
+      console.error('Error fetching request:', requestError);
+      return { success: false, error: 'Request not found' };
+    }
+
+    // Send notification
+    const notificationResult = await simulateNotification({
+      recipient: data.recipient,
+      notification: data.notification,
+      request: request,
+      items: request.request_items.map((item: any) => item.tag),
+    });
+
+    if (notificationResult.success) {
+      // Update notified_at timestamp
+      await db
+        .from('requests')
+        .update({ notified_at: new Date().toISOString() })
+        .eq('id', data.requestId);
+
+      // Log activity
+      await logActivity({
+        actor: user.id,
+        action: 'resent_notification',
+        entity: 'request',
+        entity_id: data.requestId,
+      });
+
+      revalidatePath(`/app/property/${data.requestId}/requests`);
+      return { success: true };
+    } else {
+      return { success: false, error: notificationResult.error || 'Failed to send notification' };
+    }
+  } catch (error) {
+    console.error('Exception in resendNotification:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
 export async function deleteRequest(requestId: string) {
   try {
     const user = await requireUser();

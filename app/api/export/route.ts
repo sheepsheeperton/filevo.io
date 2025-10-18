@@ -5,12 +5,6 @@ import archiver from 'archiver';
 import { NextRequest } from 'next/server';
 import { PassThrough } from 'stream';
 
-type FileRow = {
-  storage_path: string | null;
-  request_item_id: string | null;
-  uploaded_at: string;
-};
-
 export async function GET(req: NextRequest) {
   const db = await supabaseServer();
   const url = new URL(req.url);

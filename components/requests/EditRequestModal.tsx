@@ -31,7 +31,6 @@ interface Request {
 
 interface EditRequestModalProps {
   request: Request;
-  propertyId: string;
   onClose: () => void;
 }
 

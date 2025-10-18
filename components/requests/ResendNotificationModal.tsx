@@ -30,7 +30,6 @@ interface Request {
 
 interface ResendNotificationModalProps {
   request: Request;
-  propertyId: string;
   onClose: () => void;
 }
 

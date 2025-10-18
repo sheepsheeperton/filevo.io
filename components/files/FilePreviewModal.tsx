@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Image from 'next/image';
 
 interface FilePreviewModalProps {
   file: {
@@ -38,12 +39,6 @@ export function FilePreviewModal({ file, isOpen, onClose }: FilePreviewModalProp
   const isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension || '');
   const isPdf = fileExtension === 'pdf';
 
-  useEffect(() => {
-    if (isOpen && !signedUrl) {
-      loadFile();
-    }
-  }, [isOpen]);
-
   const loadFile = async () => {
     setLoading(true);
     setError(null);
@@ -69,6 +64,12 @@ export function FilePreviewModal({ file, isOpen, onClose }: FilePreviewModalProp
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isOpen && !signedUrl) {
+      loadFile();
+    }
+  }, [isOpen, signedUrl]);
 
   const handleDownload = () => {
     if (signedUrl) {
@@ -140,10 +141,13 @@ export function FilePreviewModal({ file, isOpen, onClose }: FilePreviewModalProp
             <div className="flex-1 overflow-hidden">
               {isImage ? (
                 <div className="h-full flex items-center justify-center bg-elev rounded-lg">
-                  <img 
+                  <Image 
                     src={signedUrl} 
                     alt={file.file_name}
+                    width={800}
+                    height={600}
                     className="max-w-full max-h-full object-contain rounded-lg"
+                    unoptimized
                   />
                 </div>
               ) : isPdf ? (

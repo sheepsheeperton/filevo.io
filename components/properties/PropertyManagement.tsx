@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import Link from 'next/link';
 import { updateProperty, deleteProperty } from '@/app/properties/actions';
 
 interface Property {
@@ -14,9 +15,11 @@ interface Property {
 
 interface PropertyManagementProps {
   properties: Property[];
+  isEditMode: boolean;
+  onToggleEditMode: () => void;
 }
 
-export function PropertyManagement({ properties }: PropertyManagementProps) {
+export function PropertyManagement({ properties, isEditMode, onToggleEditMode }: PropertyManagementProps) {
   const [selectedProperties, setSelectedProperties] = useState<Set<string>>(new Set());
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -94,6 +97,7 @@ export function PropertyManagement({ properties }: PropertyManagementProps) {
         setError(`Failed to delete ${failedDeletes.length} properties`);
       } else {
         setSelectedProperties(new Set());
+        onToggleEditMode(); // Exit edit mode after successful deletion
         window.location.reload();
       }
     } catch {
@@ -119,34 +123,36 @@ export function PropertyManagement({ properties }: PropertyManagementProps) {
         </div>
       )}
 
-      {/* Management Controls */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={selectedProperties.size === properties.length && properties.length > 0}
-              onChange={handleSelectAll}
-              className="rounded border-border bg-elev text-brand focus:ring-brand"
-            />
-            <span className="text-sm text-fg-muted">
-              Select All ({selectedProperties.size}/{properties.length})
-            </span>
-          </label>
-        </div>
+      {/* Management Controls - Only show in edit mode */}
+      {isEditMode && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={selectedProperties.size === properties.length && properties.length > 0}
+                onChange={handleSelectAll}
+                className="rounded border-border bg-elev text-brand focus:ring-brand"
+              />
+              <span className="text-sm text-fg-muted">
+                Select All ({selectedProperties.size}/{properties.length})
+              </span>
+            </label>
+          </div>
 
-        <div className="flex gap-2">
-          {selectedProperties.size > 0 && (
-            <Button
-              onClick={handleDeleteSelected}
-              disabled={isDeleting}
-              className="bg-danger hover:bg-danger/90 text-white"
-            >
-              {isDeleting ? 'Deleting...' : `Delete ${selectedProperties.size} ${selectedProperties.size === 1 ? 'Property' : 'Properties'}`}
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {selectedProperties.size > 0 && (
+              <Button
+                onClick={handleDeleteSelected}
+                disabled={isDeleting}
+                className="bg-danger hover:bg-danger/90 text-white"
+              >
+                {isDeleting ? 'Deleting...' : `Delete ${selectedProperties.size} ${selectedProperties.size === 1 ? 'Property' : 'Properties'}`}
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Properties Grid */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -154,15 +160,29 @@ export function PropertyManagement({ properties }: PropertyManagementProps) {
           <Card key={property.id} className="relative">
             <CardContent>
               <div className="flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  checked={selectedProperties.has(property.id)}
-                  onChange={() => handleSelectProperty(property.id)}
-                  className="mt-1 rounded border-border bg-elev text-brand focus:ring-brand"
-                />
+                {/* Checkbox - Only show in edit mode */}
+                {isEditMode && (
+                  <input
+                    type="checkbox"
+                    checked={selectedProperties.has(property.id)}
+                    onChange={() => handleSelectProperty(property.id)}
+                    className="mt-1 rounded border-border bg-elev text-brand focus:ring-brand"
+                  />
+                )}
                 
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-lg">{property.name}</div>
+                  {/* Property Link - Only clickable when not in edit mode */}
+                  {!isEditMode ? (
+                    <Link
+                      href={`/app/property/${property.id}`}
+                      className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:hsl(var(--ring))] focus-visible:ring-offset-2 rounded-lg"
+                    >
+                      <div className="font-medium text-lg hover:text-brand transition-colors">{property.name}</div>
+                    </Link>
+                  ) : (
+                    <div className="font-medium text-lg">{property.name}</div>
+                  )}
+                  
                   <div className="text-sm text-fg-muted mt-1">
                     {property.address || 'No address specified'}
                   </div>
@@ -171,14 +191,17 @@ export function PropertyManagement({ properties }: PropertyManagementProps) {
                   </div>
                 </div>
 
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => handleEdit(property)}
-                  className="text-brand hover:text-brand-600 hover:bg-brand/10"
-                >
-                  Edit
-                </Button>
+                {/* Edit Button - Only show in edit mode */}
+                {isEditMode && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleEdit(property)}
+                    className="text-brand hover:text-brand-600 hover:bg-brand/10"
+                  >
+                    Edit
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>

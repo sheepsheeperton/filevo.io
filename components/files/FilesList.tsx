@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { FilePreviewModal } from './FilePreviewModal';
 
 interface FileData {
   id: string;
@@ -23,6 +24,7 @@ interface FileData {
 
 export function FilesList({ files }: { files: FileData[]; propertyId: string }) {
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [previewFile, setPreviewFile] = useState<FileData | null>(null);
 
   // Group files by request
   const filesByRequest = files.reduce((acc, file) => {
@@ -42,6 +44,10 @@ export function FilesList({ files }: { files: FileData[]; propertyId: string }) 
     acc[requestId].files.push(file);
     return acc;
   }, {} as Record<string, { title: string; files: FileData[] }>);
+
+  const handlePreview = (file: FileData) => {
+    setPreviewFile(file);
+  };
 
   const handleDownload = async (fileId: string, storagePath: string) => {
     setDownloading(fileId);
@@ -69,31 +75,6 @@ export function FilesList({ files }: { files: FileData[]; propertyId: string }) 
     }
   };
 
-  const handleView = async (fileId: string, storagePath: string) => {
-    setDownloading(fileId);
-    try {
-      const res = await fetch('/api/files/download', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ storagePath }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'View failed');
-      }
-
-      const { signedUrl } = await res.json();
-      
-      // Open in new tab for viewing
-      window.open(signedUrl, '_blank');
-    } catch (error) {
-      console.error('View error:', error);
-      alert(`Failed to view file: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setDownloading(null);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -144,10 +125,9 @@ export function FilesList({ files }: { files: FileData[]; propertyId: string }) 
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => handleView(file.id, file.storage_path)}
-                          disabled={downloading === file.id}
+                          onClick={() => handlePreview(file)}
                         >
-                          {downloading === file.id ? 'Loading...' : 'View'}
+                          Preview
                         </Button>
                         <Button
                           size="sm"
@@ -155,7 +135,7 @@ export function FilesList({ files }: { files: FileData[]; propertyId: string }) 
                           onClick={() => handleDownload(file.id, file.storage_path)}
                           disabled={downloading === file.id}
                         >
-                          Download
+                          {downloading === file.id ? 'Loading...' : 'Download'}
                         </Button>
                       </div>
                     </div>
@@ -166,6 +146,14 @@ export function FilesList({ files }: { files: FileData[]; propertyId: string }) 
           </Card>
         ))}
       </div>
+
+      {previewFile && (
+        <FilePreviewModal
+          file={previewFile}
+          isOpen={!!previewFile}
+          onClose={() => setPreviewFile(null)}
+        />
+      )}
     </div>
   );
 }

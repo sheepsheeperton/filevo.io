@@ -200,15 +200,15 @@ function SignInForm() {
       <div className="w-full max-w-md space-y-6 sm:space-y-8">
         {/* Logo and Header */}
         <div className="text-center space-y-3 sm:space-y-4">
-          <Logo variant="combined" className="justify-center h-10 sm:h-12" />
-          <div className="space-y-1 sm:space-y-2">
+          <div className="flex items-center justify-center gap-3">
+            <Logo variant="icon" className="h-10 sm:h-12" />
             <h1 className="text-2xl sm:text-3xl font-semibold text-fg">
               Welcome to Filevo
             </h1>
-            <p className="text-fg-muted text-base sm:text-lg px-2">
-              Secure document collection for property managers
-            </p>
           </div>
+          <p className="text-fg-muted text-base sm:text-lg px-2">
+            AI-assisted document collection and workflow automation for property managers
+          </p>
         </div>
 
         {/* Auth Card */}

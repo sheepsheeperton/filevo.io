@@ -13,7 +13,7 @@ export default function Logo({ variant = "full", className }: Props) {
         className={clsx("inline-flex items-center gap-3 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:hsl(var(--ring))] focus-visible:ring-offset-2", className)}
       >
         <Image 
-          src="/brand/filevo-icon.png" 
+          src="/brand/filevo-icon.svg" 
           alt="Filevo" 
           width={32} 
           height={32} 
@@ -21,7 +21,7 @@ export default function Logo({ variant = "full", className }: Props) {
           className="flex-shrink-0"
         />
         <Image 
-          src="/brand/filevo-wordmark.png" 
+          src="/brand/filevo-wordmark.svg" 
           alt="Filevo" 
           width={120} 
           height={28} 
@@ -32,7 +32,7 @@ export default function Logo({ variant = "full", className }: Props) {
     );
   }
 
-  const src = variant === "icon" ? "/brand/filevo-icon.png" : "/brand/filevo-wordmark.png";
+  const src = variant === "icon" ? "/brand/filevo-icon.svg" : "/brand/filevo-wordmark.svg";
   const size = variant === "icon" ? { w: 28, h: 28 } : { w: 120, h: 28 };
 
   return (

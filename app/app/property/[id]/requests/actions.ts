@@ -176,6 +176,12 @@ export async function createRequest(data: {
     if (data.notification?.notifyNow && data.recipient) {
       try {
         const messagingEnabled = process.env.MESSAGING_SEND_ENABLED === 'true';
+        console.log('Notification settings:', {
+          notifyNow: data.notification.notifyNow,
+          recipient: data.recipient,
+          messagingEnabled,
+          envVar: process.env.MESSAGING_SEND_ENABLED
+        });
         
         if (messagingEnabled) {
           // Simulate sending notifications
@@ -195,6 +201,8 @@ export async function createRequest(data: {
             
             notificationSent = true;
           }
+        } else {
+          console.log('Messaging disabled - MESSAGING_SEND_ENABLED is not set to "true"');
         }
       } catch (error) {
         console.error('Error sending notification:', error);

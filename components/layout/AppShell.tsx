@@ -23,7 +23,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen lg:flex m-0 p-0">
+    <div className="min-h-screen lg:flex">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div 
@@ -34,13 +34,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside className={clsx(
-        "sticky top-0 h-dvh bg-surface border-r border-border p-4 flex flex-col gap-4 transition-transform duration-300 ease-in-out",
+        "h-dvh bg-surface border-r border-border p-4 flex flex-col gap-4 transition-transform duration-300 ease-in-out",
         // Desktop: always visible and takes space
-        "lg:translate-x-0 lg:z-auto lg:block lg:relative lg:w-[260px]",
+        "lg:translate-x-0 lg:z-auto lg:block lg:relative lg:w-[260px] lg:sticky lg:top-0",
         // Mobile: slide in/out and doesn't take space when hidden
         sidebarOpen ? "translate-x-0 z-50" : "-translate-x-full z-50",
-        // Fixed positioning on mobile only
-        "fixed lg:relative w-64"
+        // Fixed positioning on mobile only, hidden when closed
+        "fixed lg:relative w-64",
+        // Hide completely when closed on mobile to not take up space
+        sidebarOpen ? "block" : "hidden lg:block"
       )}>
         <div className="flex items-center justify-between">
           <Logo variant="combined" />
@@ -89,7 +91,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main content - full width on mobile, flex-1 on desktop */}
-      <div className="w-full lg:flex-1 lg:flex lg:flex-col min-h-screen">
+      <div className="w-full lg:flex-1 lg:flex lg:flex-col">
         {/* Mobile header with hamburger menu */}
         <header className="lg:hidden bg-surface border-b border-border px-4 py-2 flex items-center justify-between">
           <Button

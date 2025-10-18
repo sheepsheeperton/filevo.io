@@ -27,7 +27,7 @@ interface Request {
   notified_at?: string | null;
 }
 
-export function RequestCard({ request, propertyId }: { request: Request; propertyId: string }) {
+export function RequestCard({ request }: { request: Request; propertyId: string }) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showResendModal, setShowResendModal] = useState(false);
   

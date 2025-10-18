@@ -8,8 +8,7 @@ import { PassThrough } from 'stream';
 type FileRow = {
   storage_path: string | null;
   request_item_id: string | null;
-  request_item?: { request_id: string } | null;
-  request?: { property_id: string } | null;
+  uploaded_at: string;
 };
 
 export async function GET(req: NextRequest) {
@@ -21,11 +20,33 @@ export async function GET(req: NextRequest) {
   
   if (!propertyId) return new Response('Missing propertyId', { status: 400 });
 
+  // First get all request items for this property
+  const { data: requestItems, error: requestItemsError } = await db
+    .from('request_items')
+    .select(`
+      id,
+      request:requests!inner(
+        property_id
+      )
+    `)
+    .eq('request.property_id', propertyId);
+
+  if (requestItemsError) {
+    console.error('Error fetching request items:', requestItemsError);
+    return new Response(requestItemsError.message, { status: 500 });
+  }
+
+  if (!requestItems || requestItems.length === 0) {
+    return new Response('No files found for this property', { status: 404 });
+  }
+
+  const requestItemIds = requestItems.map(item => item.id);
+
+  // Now get files for these request items
   let query = db
     .from('files')
-    .select(
-      'storage_path, request_item_id, uploaded_at, request_item:request_items(request_id), request:requests(property_id)'
-    );
+    .select('storage_path, request_item_id, uploaded_at')
+    .in('request_item_id', requestItemIds);
 
   // Apply date filters if provided
   if (startDate) {
@@ -35,13 +56,14 @@ export async function GET(req: NextRequest) {
     query = query.lte('uploaded_at', endDate);
   }
 
-  const { data: rows, error } = await query.returns<FileRow[]>();
+  const { data: rows, error } = await query;
 
-  if (error) return new Response(error.message, { status: 500 });
+  if (error) {
+    console.error('Error fetching files:', error);
+    return new Response(error.message, { status: 500 });
+  }
 
-  const relevant = (rows || []).filter(
-    (r) => r.request?.property_id === propertyId && !!r.storage_path
-  );
+  const relevant = (rows || []).filter(r => !!r.storage_path);
 
   if (!relevant.length) return new Response('No files', { status: 404 });
 

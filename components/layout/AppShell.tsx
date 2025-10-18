@@ -34,7 +34,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside className={clsx(
-        "h-dvh bg-surface border-r border-border p-4 flex flex-col transition-transform duration-300 ease-in-out",
+        "h-dvh bg-surface border-r border-border flex flex-col transition-transform duration-300 ease-in-out",
         // Desktop: always visible and takes space
         "lg:translate-x-0 lg:z-auto lg:block lg:relative lg:w-[260px] lg:sticky lg:top-0",
         // Mobile: slide in/out and doesn't take space when hidden
@@ -44,22 +44,26 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         // Hide completely when closed on mobile to not take up space
         sidebarOpen ? "block" : "hidden lg:block"
       )}>
-        <div className="flex items-center justify-between mb-4">
-          <Logo variant="combined" href="/dashboard" />
-          {/* Close button for mobile */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden p-2"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </Button>
+        {/* Header section with padding */}
+        <div className="p-4 pb-0">
+          <div className="flex items-center justify-between mb-4">
+            <Logo variant="combined" href="/dashboard" />
+            {/* Close button for mobile */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden p-2"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </Button>
+          </div>
         </div>
         
-        <nav className="flex-1">
+        {/* Navigation section with padding */}
+        <nav className="flex-1 px-4">
           <ul className="space-y-1">
             {nav.map((n) => {
               const active = pathname?.startsWith(n.href);
@@ -81,7 +85,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </ul>
         </nav>
         
-        <div className="mt-auto space-y-3">
+        {/* Footer section with padding - pushed to bottom */}
+        <div className="p-4 pt-0 space-y-3">
           <LogoutButton />
           <div className="flex items-center justify-between">
             <span className="text-xs text-fg-subtle">Theme</span>

@@ -16,7 +16,7 @@ async function simulateNotification(data: {
   request: { id: string; title: string; request_items: Array<{ tag: string; upload_token: string }> };
   items: string[];
   uploadedFiles?: Array<{ name: string; size: number; type: string }>;
-  attachments?: Array<{ filename: string; content: string; type: string }>;
+  attachments?: Array<{ filename: string; content: string; contentType: string }>;
 }) {
   try {
     console.log('Sending notification:', {
@@ -48,7 +48,12 @@ async function simulateNotification(data: {
         subject: `Document Request: ${data.request.title}`,
         hasApiKey: !!process.env.RESEND_API_KEY,
         apiKeyLength: process.env.RESEND_API_KEY?.length || 0,
-        attachmentCount: attachments.length
+        attachmentCount: attachments.length,
+        attachments: attachments.map(att => ({
+          filename: att.filename,
+          contentType: att.contentType,
+          contentLength: att.content.length
+        }))
       });
       
       const emailPayload: {
@@ -56,7 +61,7 @@ async function simulateNotification(data: {
         to: string[];
         subject: string;
         html: string;
-        attachments?: Array<{ filename: string; content: string; type: string }>;
+        attachments?: Array<{ filename: string; content: string; contentType: string }>;
       } = {
         from: process.env.RESEND_FROM_EMAIL || 'noreply@filevo.io',
         to: [data.recipient.email],
@@ -68,6 +73,15 @@ async function simulateNotification(data: {
       if (attachments.length > 0) {
         emailPayload.attachments = attachments;
       }
+      
+      console.log('Email payload being sent:', {
+        ...emailPayload,
+        attachments: emailPayload.attachments?.map(att => ({
+          filename: att.filename,
+          contentType: att.contentType,
+          contentLength: att.content.length
+        }))
+      });
       
       const emailResponse = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -364,7 +378,7 @@ export async function createRequest(data: {
         
         if (messagingEnabled) {
           // Prepare file attachments from uploaded files
-          const fileAttachments: Array<{ filename: string; content: string; type: string }> = [];
+          const fileAttachments: Array<{ filename: string; content: string; contentType: string }> = [];
           if (data.uploadedFiles && data.uploadedFiles.length > 0) {
             try {
               // Get the file records we just created
@@ -375,10 +389,13 @@ export async function createRequest(data: {
                 .in('file_name', data.uploadedFiles.map(f => f.name));
 
               console.log('Found file records for attachments:', fileRecords?.length || 0);
+              console.log('File records:', fileRecords);
 
               // Download files from Supabase Storage and convert to base64
               for (const fileRecord of fileRecords || []) {
                 try {
+                  console.log(`Processing file: ${fileRecord.file_name} at path: ${fileRecord.file_path}`);
+                  
                   const { data: fileData, error: downloadError } = await db.storage
                     .from('files')
                     .download(fileRecord.file_path);
@@ -392,13 +409,21 @@ export async function createRequest(data: {
                   const arrayBuffer = await fileData.arrayBuffer();
                   const base64Content = Buffer.from(arrayBuffer).toString('base64');
 
-                  fileAttachments.push({
+                  const attachment = {
                     filename: fileRecord.file_name,
                     content: base64Content,
-                    type: fileRecord.file_type
-                  });
+                    contentType: fileRecord.file_type
+                  };
+
+                  fileAttachments.push(attachment);
 
                   console.log(`Prepared attachment: ${fileRecord.file_name} (${Math.round(arrayBuffer.byteLength / 1024)}KB)`);
+                  console.log(`Attachment preview:`, {
+                    filename: attachment.filename,
+                    contentType: attachment.contentType,
+                    contentLength: attachment.content.length,
+                    contentPreview: attachment.content.substring(0, 50) + '...'
+                  });
                 } catch (error) {
                   console.error('Error processing file attachment:', error);
                   continue;

@@ -5,6 +5,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PropertyForm } from '@/components/properties/PropertyForm';
 import { PropertyManagement } from '@/components/properties/PropertyManagement';
+import { RequestModal } from '@/components/requests/RequestModal';
+import { UserPlus, FileText } from 'lucide-react';
 
 interface Property {
   id: string;
@@ -17,18 +19,33 @@ interface PropertiesPageClientProps {
   properties: Property[];
 }
 
+const PRESET_ONBOARDING = ['Driver\'s license', 'Signed lease', 'Proof of insurance'];
+const PRESET_RENEWAL = ['Signed lease', 'Proof of insurance'];
+
 export function PropertiesPageClient({ properties }: PropertiesPageClientProps) {
   const [isEditMode, setIsEditMode] = useState(false);
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const [presetItems, setPresetItems] = useState<string[]>([]);
 
   const handleToggleEditMode = () => {
     setIsEditMode(!isEditMode);
+  };
+
+  const handlePresetClick = (items: string[]) => {
+    setPresetItems(items);
+    setShowRequestForm(true);
+  };
+
+  const handleCloseRequestForm = () => {
+    setShowRequestForm(false);
+    setPresetItems([]);
   };
 
   return (
     <div className="max-w-6xl space-y-8">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-semibold">Properties</h1>
+          <h1 className="text-3xl font-semibold">Onboarding & Renewals</h1>
           <p className="text-fg-muted mt-2">Create and manage properties to organize your document requests</p>
         </div>
         <div className="flex gap-2">
@@ -42,6 +59,27 @@ export function PropertiesPageClient({ properties }: PropertiesPageClientProps) 
           <PropertyForm />
         </div>
       </div>
+
+      {/* Quick Create Buttons */}
+      {properties && properties.length > 0 && (
+        <div className="flex gap-3">
+          <Button
+            onClick={() => handlePresetClick(PRESET_ONBOARDING)}
+            className="bg-teal-600 hover:bg-teal-700 text-white"
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            New Onboarding Packet
+          </Button>
+          <Button
+            onClick={() => handlePresetClick(PRESET_RENEWAL)}
+            variant="secondary"
+            className="border-teal-200 text-teal-700 hover:bg-teal-50 dark:border-teal-800 dark:text-teal-300 dark:hover:bg-teal-900/20"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            New Renewal Packet
+          </Button>
+        </div>
+      )}
 
       {properties && properties.length > 0 ? (
         <PropertyManagement 
@@ -78,6 +116,15 @@ export function PropertiesPageClient({ properties }: PropertiesPageClientProps) 
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Request Form Modal */}
+      {showRequestForm && (
+        <RequestModal
+          onClose={handleCloseRequestForm}
+          presetItems={presetItems}
+          properties={properties.map(p => ({ id: p.id, name: p.name }))}
+        />
       )}
     </div>
   );

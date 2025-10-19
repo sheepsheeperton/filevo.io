@@ -12,16 +12,14 @@ import {
   UserPlus, 
   Wrench, 
   FolderArchive, 
-  Building2, 
   Activity 
 } from "lucide-react";
 
 const nav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/workflows/onboarding-renewals", label: "Onboarding & Renewals", icon: UserPlus },
+  { href: "/app/properties", label: "Onboarding & Renewals", icon: UserPlus },
   { href: "/workflows/maintenance", label: "Maintenance & Vendor Receipts", icon: Wrench },
   { href: "/workflows/audit", label: "Ownership / Accounting / Audit", icon: FolderArchive },
-  { href: "/app/properties", label: "Properties", icon: Building2 },
   { href: "/app/activity", label: "Activity", icon: Activity },
 ];
 

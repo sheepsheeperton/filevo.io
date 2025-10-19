@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense, Profiler } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -93,24 +93,80 @@ export function UnifiedRequestModal({
   useEffect(() => {
     performanceMark('modal-mount-start');
     console.log('🚀 Modal mounting - tracking performance');
+    console.log('📊 Modal props:', { 
+      propertiesCount: properties.length, 
+      showPresetSelector, 
+      selectedPropertyId: propSelectedPropertyId,
+      presetItemsCount: presetItems.length 
+    });
     
-    // Monitor network activity
+    // Comprehensive network monitoring
     const originalFetch = window.fetch;
     let networkCalls = 0;
+    let totalBytes = 0;
     
+    // Monitor fetch calls
     window.fetch = function(...args) {
       networkCalls++;
-      console.log(`🌐 Network call #${networkCalls}:`, args[0]);
-      return originalFetch.apply(this, args);
+      const url = args[0];
+      console.log(`🌐 Fetch call #${networkCalls}:`, url);
+      
+      const startTime = performance.now();
+      return originalFetch.apply(this, args).then(response => {
+        const duration = performance.now() - startTime;
+        console.log(`⏱️ Fetch #${networkCalls} completed in ${duration.toFixed(2)}ms:`, url);
+        
+        // Clone response to read headers
+        const clonedResponse = response.clone();
+        clonedResponse.headers.forEach((value, key) => {
+          if (key.toLowerCase() === 'content-length') {
+            totalBytes += parseInt(value) || 0;
+            console.log(`📊 Response size: ${value} bytes`);
+          }
+        });
+        
+        return response;
+      }).catch(error => {
+        const duration = performance.now() - startTime;
+        console.log(`❌ Fetch #${networkCalls} failed in ${duration.toFixed(2)}ms:`, url, error);
+        throw error;
+      });
     };
+    
+    // Monitor XMLHttpRequest calls (simplified)
+    const originalXHROpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(method: string, url: string | URL, async?: boolean, username?: string | null, password?: string | null) {
+      networkCalls++;
+      console.log(`🌐 XHR call #${networkCalls}:`, method, url);
+      return originalXHROpen.call(this, method, url, async ?? true, username, password);
+    };
+    
+    // Monitor resource loading
+    const observer = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        if (entry.entryType === 'resource') {
+          const resourceEntry = entry as PerformanceResourceTiming;
+          console.log(`📦 Resource loaded:`, {
+            name: resourceEntry.name,
+            duration: resourceEntry.duration.toFixed(2) + 'ms',
+            size: resourceEntry.transferSize || 'unknown',
+            type: resourceEntry.initiatorType
+          });
+        }
+      }
+    });
+    observer.observe({ entryTypes: ['resource'] });
     
     return () => {
       performanceMark('modal-unmount');
       console.log('🏁 Modal unmounting');
       console.log(`📊 Total network calls during modal session: ${networkCalls}`);
+      console.log(`📊 Total bytes transferred: ${totalBytes}`);
       
-      // Restore original fetch
+      // Restore original functions
       window.fetch = originalFetch;
+      XMLHttpRequest.prototype.open = originalXHROpen;
+      observer.disconnect();
     };
   }, []);
 
@@ -152,9 +208,11 @@ export function UnifiedRequestModal({
   // Initialize with preset items or selected preset - OPTIMIZED
   useEffect(() => {
     performanceMark('init-preset-start');
+    console.log('🔄 Initializing preset data...');
     
     if (presetItems.length > 0) {
       // Legacy preset items from old buttons
+      console.log('📋 Using legacy preset items:', presetItems);
       setItems(presetItems.map((item, index) => ({ tag: item, id: `preset-${index}` })));
       setTitle(presetItems.includes('Driver\'s license') ? 'New Tenant Onboarding' : 'Lease Renewal');
       setDescription(presetItems.includes('Driver\'s license') 
@@ -162,9 +220,11 @@ export function UnifiedRequestModal({
         : 'Please provide the following documents for your lease renewal.');
     } else if (showPresetSelector) {
       // New preset selector - start with onboarding preset
+      console.log('🎯 Using preset selector with onboarding');
       applyPreset(presetData.onboarding);
     } else {
       // Empty form
+      console.log('📝 Creating empty form');
       setItems([{ tag: '', id: Date.now().toString() }]);
     }
     
@@ -267,6 +327,16 @@ export function UnifiedRequestModal({
     setShowAICompose(true);
   }, []);
 
+  // React Profiler callback
+  const onRenderCallback = useCallback((id: string, phase: string, actualDuration: number, baseDuration: number, startTime: number, commitTime: number) => {
+    console.log(`🎭 React Profiler [${id}] ${phase}:`, {
+      actualDuration: actualDuration.toFixed(2) + 'ms',
+      baseDuration: baseDuration.toFixed(2) + 'ms',
+      startTime: startTime.toFixed(2) + 'ms',
+      commitTime: commitTime.toFixed(2) + 'ms'
+    });
+  }, []);
+
   if (showSharePanel && createdRequest) {
     return (
       <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -314,8 +384,9 @@ export function UnifiedRequestModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <Profiler id="UnifiedRequestModal" onRender={onRenderCallback}>
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Create Document Request</CardTitle>
           <Button variant="ghost" size="sm" onClick={handleClose}>
@@ -556,5 +627,6 @@ export function UnifiedRequestModal({
         </CardContent>
       </Card>
     </div>
+    </Profiler>
   );
 }

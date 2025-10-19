@@ -612,19 +612,152 @@ export async function resendNotification(data: {
   }
 }
 
+export async function archiveRequest(requestId: string) {
+  try {
+    const user = await requireUser();
+    const db = await supabaseServer();
+
+    // Verify the user has access to this request
+    const { data: request, error: requestError } = await db
+      .from('requests')
+      .select('id, property_id, title')
+      .eq('id', requestId)
+      .single();
+
+    if (requestError || !request) {
+      console.error('Error fetching request:', requestError);
+      return { success: false, error: 'Request not found' };
+    }
+
+    // Archive the request
+    const { error: archiveError } = await db
+      .from('requests')
+      .update({ archived_at: new Date().toISOString() })
+      .eq('id', requestId);
+
+    if (archiveError) {
+      console.error('Error archiving request:', archiveError);
+      return { success: false, error: 'Failed to archive request' };
+    }
+
+    // Log activity
+    await logActivity({
+      actor: user.id,
+      action: 'archived',
+      entity: 'request',
+      entity_id: requestId,
+    });
+
+    revalidatePath(`/app/property/${request.property_id}/requests`);
+    revalidatePath('/dashboard');
+    return { success: true };
+  } catch (error) {
+    console.error('Exception in archiveRequest:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
+export async function restoreRequest(requestId: string) {
+  try {
+    const user = await requireUser();
+    const db = await supabaseServer();
+
+    // Verify the user has access to this request
+    const { data: request, error: requestError } = await db
+      .from('requests')
+      .select('id, property_id, title')
+      .eq('id', requestId)
+      .single();
+
+    if (requestError || !request) {
+      console.error('Error fetching request:', requestError);
+      return { success: false, error: 'Request not found' };
+    }
+
+    // Restore the request
+    const { error: restoreError } = await db
+      .from('requests')
+      .update({ archived_at: null })
+      .eq('id', requestId);
+
+    if (restoreError) {
+      console.error('Error restoring request:', restoreError);
+      return { success: false, error: 'Failed to restore request' };
+    }
+
+    // Log activity
+    await logActivity({
+      actor: user.id,
+      action: 'unarchived',
+      entity: 'request',
+      entity_id: requestId,
+    });
+
+    revalidatePath(`/app/property/${request.property_id}/requests`);
+    revalidatePath('/dashboard');
+    return { success: true };
+  } catch (error) {
+    console.error('Exception in restoreRequest:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+}
+
 export async function deleteRequest(requestId: string) {
   try {
     const user = await requireUser();
     const db = await supabaseServer();
 
-    // Log before deleting
-    await logActivity({
-      actor: user.id,
-      action: 'deleted',
-      entity: 'request',
-      entity_id: requestId,
-    });
+    // Verify the user has access to this request
+    const { data: request, error: requestError } = await db
+      .from('requests')
+      .select('id, property_id')
+      .eq('id', requestId)
+      .single();
 
+    if (requestError || !request) {
+      console.error('Error fetching request:', requestError);
+      return { success: false, error: 'Request not found' };
+    }
+
+    // Check if any files exist for this request
+    const { data: requestItems } = await db
+      .from('request_items')
+      .select('id')
+      .eq('request_id', requestId);
+
+    if (requestItems && requestItems.length > 0) {
+      const itemIds = requestItems.map(item => item.id);
+      const { data: files, error: filesError } = await db
+        .from('files')
+        .select('id')
+        .in('request_item_id', itemIds);
+
+      if (filesError) {
+        console.error('Error checking files:', filesError);
+        return { success: false, error: 'Failed to check for files' };
+      }
+
+      if (files && files.length > 0) {
+        return { 
+          success: false, 
+          error: 'Cannot delete request with uploaded files. Please archive instead.',
+          hasFiles: true 
+        };
+      }
+    }
+
+    // Delete request items first (foreign key constraint)
+    const { error: itemsError } = await db
+      .from('request_items')
+      .delete()
+      .eq('request_id', requestId);
+
+    if (itemsError) {
+      console.error('Error deleting request items:', itemsError);
+      return { success: false, error: 'Failed to delete request items' };
+    }
+
+    // Delete the request
     const { error } = await db.from('requests').delete().eq('id', requestId);
 
     if (error) {
@@ -632,7 +765,16 @@ export async function deleteRequest(requestId: string) {
       return { success: false, error: 'Failed to delete request' };
     }
 
-    revalidatePath('/app/property');
+    // Log activity
+    await logActivity({
+      actor: user.id,
+      action: 'deleted',
+      entity: 'request',
+      entity_id: requestId,
+    });
+
+    revalidatePath(`/app/property/${request.property_id}/requests`);
+    revalidatePath('/dashboard');
     return { success: true };
   } catch (error) {
     console.error('Exception in deleteRequest:', error);

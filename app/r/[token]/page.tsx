@@ -8,7 +8,7 @@ export default async function PublicUploadPage({ params }: { params: Promise<{ t
   
   console.log('Looking up token:', token);
   
-  // First, get the request item
+  // First, get the request item with request info to check if archived
   const { data: item, error } = await db
     .from('request_items')
     .select(`
@@ -16,7 +16,12 @@ export default async function PublicUploadPage({ params }: { params: Promise<{ t
       tag,
       status,
       upload_token,
-      request_id
+      request_id,
+      requests!inner(
+        id,
+        title,
+        archived_at
+      )
     `)
     .eq('upload_token', token)
     .single();
@@ -34,6 +39,26 @@ export default async function PublicUploadPage({ params }: { params: Promise<{ t
           </div>
           <h1 className="text-2xl font-semibold">Invalid Upload Link</h1>
           <p className="text-fg-muted">This upload link is not valid or has expired. Please contact the property manager for assistance.</p>
+        </div>
+      </main>
+    );
+  }
+
+  // Check if the request is archived
+  if (item.requests && Array.isArray(item.requests) && item.requests.length > 0 && item.requests[0].archived_at) {
+    return (
+      <main className="min-h-screen flex items-center justify-center p-8 bg-bg">
+        <div className="max-w-md text-center space-y-4">
+          <div className="text-fg-muted">
+            <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8l6 6 6-6" />
+            </svg>
+          </div>
+          <h1 className="text-xl font-semibold text-fg">Upload Link Expired</h1>
+          <p className="text-fg-muted">This upload link has expired or is no longer available.</p>
+          <div className="pt-4">
+            <Logo className="h-8 w-auto mx-auto opacity-50" />
+          </div>
         </div>
       </main>
     );

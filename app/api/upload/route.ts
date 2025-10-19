@@ -9,9 +9,29 @@ export async function POST(req: Request) {
 
   if (!file || !itemId || !token) return new Response('Bad Request', { status: 400 });
 
-  // Validate token ↔ item linkage
-  const { data: item } = await db.from('request_items').select('id, request_id, tag, upload_token').eq('id', itemId).eq('upload_token', token).single();
+  // Validate token ↔ item linkage and check if request is archived
+  const { data: item } = await db
+    .from('request_items')
+    .select(`
+      id, 
+      request_id, 
+      tag, 
+      upload_token,
+      requests!inner(
+        id,
+        archived_at
+      )
+    `)
+    .eq('id', itemId)
+    .eq('upload_token', token)
+    .single();
+  
   if (!item) return new Response('Invalid token', { status: 401 });
+  
+  // Check if request is archived
+  if (item.requests && Array.isArray(item.requests) && item.requests.length > 0 && item.requests[0].archived_at) {
+    return new Response('Upload link expired', { status: 410 });
+  }
 
   // Determine storage path
   const ext = (file.name.split('.').pop() || 'bin').toLowerCase();

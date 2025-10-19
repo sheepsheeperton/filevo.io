@@ -142,9 +142,7 @@ export function RequestForm({
     request_items: Array<{ id: string; tag: string; upload_token: string }>;
   } | null>(null);
 
-  // Two-phase flow state
-  const [phase, setPhase] = useState<'draft' | 'attachments' | 'send'>('draft');
-  const [draftRequestId, setDraftRequestId] = useState<string | null>(null);
+  // Two-phase flow state (simplified for now)
   const [attachments, setAttachments] = useState<Array<{ id: string; file: File; preview?: string; storagePath?: string }>>([]);
 
   // Optimized callbacks
@@ -168,7 +166,8 @@ export function RequestForm({
     setItems(prev => prev.map(item => item.id === id ? { ...item, tag } : item));
   }, []);
 
-  // Create draft request (phase 1)
+  // Create draft request (phase 1) - DISABLED FOR NOW
+  /*
   const createDraftRequest = useCallback(async () => {
     performanceMark('draft-create-start');
     console.log('📝 Creating draft request');
@@ -225,8 +224,10 @@ export function RequestForm({
       setIsLoading(false);
     }
   }, [formSelectedPropertyId, title, description, dueDate, items, recipient, preferredChannel]);
+  */
 
-  // Send final request (phase 2)
+  // Send final request (phase 2) - DISABLED FOR NOW
+  /*
   const sendFinalRequest = useCallback(async () => {
     if (!draftRequestId) return;
 
@@ -267,18 +268,63 @@ export function RequestForm({
       setIsLoading(false);
     }
   }, [draftRequestId, formSelectedPropertyId, title, description, dueDate, items, attachments, recipient, notifyNow, preferredChannel]);
+  */
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (phase === 'draft') {
-      await createDraftRequest();
-    } else if (phase === 'attachments') {
-      setPhase('send');
-    } else if (phase === 'send') {
-      await sendFinalRequest();
+    performanceMark('form-submit-start');
+    console.log('📝 Form submission started - single server call expected');
+    
+    if (!formSelectedPropertyId) {
+      setError('Please select a property');
+      return;
     }
-  }, [phase, createDraftRequest, sendFinalRequest]);
+
+    if (!title.trim()) {
+      setError('Please enter a title');
+      return;
+    }
+
+    const validItems = items.filter(item => item.tag.trim());
+    if (validItems.length === 0) {
+      setError('Please add at least one document item');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await createRequest({
+        propertyId: formSelectedPropertyId,
+        title: title.trim(),
+        description: description.trim(),
+        dueDate: dueDate || null,
+        items: validItems.map(item => item.tag.trim()),
+        uploadedFiles: attachments.map(att => att.file), // Include attachments
+        recipient,
+        notification: {
+          notifyNow,
+          preferredChannel
+        }
+      });
+
+      if (result.success && result.data) {
+        setCreatedRequest(result.data);
+        setShowSharePanel(true);
+        performanceMark('form-submit-success');
+        performanceMeasure('form-submit', 'form-submit-start', 'form-submit-success');
+      } else {
+        setError(result.error || 'Failed to create request');
+      }
+    } catch (error) {
+      console.error('Request creation error:', error);
+      setError('An unexpected error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [formSelectedPropertyId, title, description, dueDate, items, attachments, recipient, notifyNow, preferredChannel]);
 
   const handleClose = useCallback(() => {
     performanceMark('form-close');
@@ -297,7 +343,8 @@ export function RequestForm({
     setShowAICompose(true);
   }, []);
 
-  // Attachment handlers
+  // Attachment handlers - DISABLED FOR NOW
+  /*
   const handleAttachmentUpload = useCallback((file: { id: string; file: File; preview?: string }, storagePath: string) => {
     setAttachments(prev => [...prev, { ...file, storagePath }]);
   }, []);
@@ -305,6 +352,7 @@ export function RequestForm({
   const handleAttachmentError = useCallback((error: string) => {
     setError(error);
   }, []);
+  */
 
   // Success panel
   if (showSharePanel && createdRequest) {
@@ -635,38 +683,27 @@ export function RequestForm({
               </div>
             )}
 
-            {/* Attachments Section - only in attachments phase */}
-            {phase === 'attachments' && draftRequestId && (
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Attachments (Optional)</Label>
-                <Suspense fallback={
-                  <div className="p-4 border border-border rounded-md">
-                    <div className="text-center text-fg-muted">Loading file upload...</div>
-                  </div>
-                }>
-                  <DocumentUpload
-                    files={attachments}
-                    onFilesChange={setAttachments}
-                    mode="request-attachment"
-                    requestId={draftRequestId}
-                    onUploadComplete={handleAttachmentUpload}
-                    onUploadError={handleAttachmentError}
-                    maxFiles={5}
-                  />
-                </Suspense>
-              </div>
-            )}
+            {/* Attachments Section - show in all phases for now */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Attachments (Optional)</Label>
+              <Suspense fallback={
+                <div className="p-4 border border-border rounded-md">
+                  <div className="text-center text-fg-muted">Loading file upload...</div>
+                </div>
+              }>
+                <DocumentUpload
+                  files={attachments}
+                  onFilesChange={setAttachments}
+                  mode="default" // Use default mode for now
+                  maxFiles={5}
+                />
+              </Suspense>
+            </div>
 
             {/* Submit Button */}
             <div className="flex gap-2">
               <Button type="submit" disabled={isLoading} className="flex-1">
-                {isLoading ? (
-                  phase === 'draft' ? 'Creating...' : 
-                  phase === 'attachments' ? 'Sending...' : 'Sending...'
-                ) : (
-                  phase === 'draft' ? 'Continue' : 
-                  phase === 'attachments' ? 'Send Request' : 'Send Request'
-                )}
+                {isLoading ? 'Creating...' : 'Create Request'}
               </Button>
               <Button type="button" variant="secondary" onClick={handleClose}>
                 Cancel

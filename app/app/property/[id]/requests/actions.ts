@@ -381,15 +381,23 @@ export async function createRequest(data: {
           const fileAttachments: Array<{ filename: string; content: string; contentType: string }> = [];
           if (data.uploadedFiles && data.uploadedFiles.length > 0) {
             try {
+              console.log('=== ATTACHMENT DEBUG START ===');
+              console.log('Uploaded files:', data.uploadedFiles.map(f => ({ name: f.name, size: f.size, type: f.type })));
+              console.log('Request ID:', request.id);
+              
               // Get the file records we just created
-              const { data: fileRecords } = await db
+              const { data: fileRecords, error: fileRecordsError } = await db
                 .from('files')
                 .select('file_name, file_path, file_type')
-                .eq('request_id', request.id)
-                .in('file_name', data.uploadedFiles.map(f => f.name));
+                .eq('request_id', request.id);
+
+              if (fileRecordsError) {
+                console.error('Error fetching file records:', fileRecordsError);
+              }
 
               console.log('Found file records for attachments:', fileRecords?.length || 0);
               console.log('File records:', fileRecords);
+              console.log('Looking for files with names:', data.uploadedFiles.map(f => f.name));
 
               // Download files from Supabase Storage and convert to base64
               for (const fileRecord of fileRecords || []) {
@@ -433,6 +441,14 @@ export async function createRequest(data: {
               console.error('Error preparing attachments:', error);
               // Continue without attachments if there's an error
             }
+            
+            console.log('=== ATTACHMENT DEBUG END ===');
+            console.log('Final attachment count:', fileAttachments.length);
+            console.log('Attachments prepared:', fileAttachments.map(att => ({
+              filename: att.filename,
+              contentType: att.contentType,
+              contentLength: att.content.length
+            })));
           }
 
           // Simulate sending notifications with prepared attachments

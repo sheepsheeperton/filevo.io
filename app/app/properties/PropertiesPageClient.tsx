@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PropertyForm } from '@/components/properties/PropertyForm';
 import { PropertyManagement } from '@/components/properties/PropertyManagement';
-import { UnifiedRequestModal } from '@/components/requests/UnifiedRequestModal';
+import { RequestForm } from '@/components/requests/RequestForm';
 import { UserPlus } from 'lucide-react';
 
 interface Property {
@@ -106,7 +106,7 @@ export function PropertiesPageClient({ properties }: PropertiesPageClientProps) 
 
       {/* Request Form Modal */}
       {showRequestForm && (
-        <UnifiedRequestModal
+        <RequestForm
           onClose={handleCloseRequestForm}
           properties={properties.map(p => ({ id: p.id, name: p.name }))}
           showPresetSelector={true}

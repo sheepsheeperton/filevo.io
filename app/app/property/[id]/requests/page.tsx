@@ -1,7 +1,7 @@
 import { requireUser } from '@/lib/auth';
 import { supabaseServer } from '@/lib/supabase/server';
 import { Card, CardContent } from '@/components/ui/card';
-import { RequestForm } from '@/components/requests/RequestForm';
+import { PropertyRequestForm } from '@/components/requests/PropertyRequestForm';
 import { RequestCard } from '@/components/requests/RequestCard';
 
 export default async function PropertyRequestsPage({
@@ -42,7 +42,7 @@ export default async function PropertyRequestsPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Document Requests</h2>
-        <RequestForm propertyId={id} />
+        <PropertyRequestForm propertyId={id} />
       </div>
 
       {requestsError && (
@@ -86,7 +86,7 @@ export default async function PropertyRequestsPage({
                   Create your first document request to send upload links and track file submissions
                 </p>
               </div>
-              <RequestForm propertyId={id} />
+              <PropertyRequestForm propertyId={id} />
             </div>
           </CardContent>
         </Card>

@@ -24,11 +24,9 @@ export default async function DashboardPage() {
       due_date, 
       property_id, 
       created_at,
-      archived_at,
       request_items(id, status, tag)
     `)
     .in('property_id', propertyIds) // Only requests from existing properties
-    .is('archived_at', null) // Exclude archived requests
     .order('created_at', { ascending: false });
 
   // Get files only from existing requests

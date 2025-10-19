@@ -45,10 +45,8 @@ export default async function AuditPage() {
       due_date, 
       property_id, 
       created_at,
-      archived_at,
       request_items(id, status, tag)
     `)
-    .is('archived_at', null) // Exclude archived requests
     .order('created_at', { ascending: false });
 
   // Get all files for audit tracking

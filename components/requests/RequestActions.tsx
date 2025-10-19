@@ -101,31 +101,15 @@ export function RequestActions({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {isArchived ? (
-          <DropdownMenuItem onClick={handleRestore} disabled={isLoading}>
-            <RotateCcw className="mr-2 h-4 w-4" />
-            Restore Request
-          </DropdownMenuItem>
-        ) : (
-          <>
-            <DropdownMenuItem onClick={handleArchive} disabled={isLoading}>
-              <Archive className="mr-2 h-4 w-4" />
-              Archive Request
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem 
-              onClick={handleDelete} 
-              disabled={isLoading || hasFiles}
-              className={hasFiles ? 'text-fg-muted' : 'text-danger'}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete Permanently
-              {hasFiles && (
-                <span className="ml-2 text-xs">(Files exist)</span>
-              )}
-            </DropdownMenuItem>
-          </>
-        )}
+        <DropdownMenuItem disabled>
+          <Archive className="mr-2 h-4 w-4" />
+          Archive Request (Coming Soon)
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem disabled>
+          <Trash2 className="mr-2 h-4 w-4" />
+          Delete Permanently (Coming Soon)
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

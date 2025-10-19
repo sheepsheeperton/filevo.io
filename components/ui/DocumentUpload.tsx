@@ -3,7 +3,8 @@
 import { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Upload, X, FileText, Image, File } from 'lucide-react';
+import { Upload, X, FileText, Image as ImageIcon, File } from 'lucide-react';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
 interface UploadedFile {
@@ -140,7 +141,7 @@ export function DocumentUpload({
 
   const getFileIcon = useCallback((file: File) => {
     if (file.type.startsWith('image/')) {
-      return <Image className="h-4 w-4" />;
+      return <ImageIcon className="h-4 w-4" />;
     } else if (file.type === 'application/pdf') {
       return <FileText className="h-4 w-4" />;
     } else {
@@ -205,9 +206,11 @@ export function DocumentUpload({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       {uploadedFile.preview ? (
-                        <img
+                        <Image
                           src={uploadedFile.preview}
                           alt={uploadedFile.file.name}
+                          width={32}
+                          height={32}
                           className="h-8 w-8 rounded object-cover"
                         />
                       ) : (

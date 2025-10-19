@@ -11,7 +11,6 @@ import { createRequest } from '@/app/app/property/[id]/requests/actions';
 
 // Lazy load heavy components
 const AIComposeModal = lazy(() => import('./AIComposeModal').then(module => ({ default: module.AIComposeModal })));
-const DocumentUpload = lazy(() => import('@/components/ui/DocumentUpload').then(module => ({ default: module.DocumentUpload })));
 
 // Performance monitoring
 const performanceMark = (name: string) => {

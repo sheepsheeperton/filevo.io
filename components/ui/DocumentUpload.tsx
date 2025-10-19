@@ -175,26 +175,12 @@ export function DocumentUpload({
     const uploadedFile: UploadedFile = {
       id: `${Date.now()}-${Math.random()}`,
       file,
-      // Only create preview for images and defer it
-      preview: file.type.startsWith('image/') ? undefined : undefined
+      // Create preview immediately for images
+      preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined
     };
 
-    // Create preview asynchronously to avoid blocking
-    if (file.type.startsWith('image/')) {
-      setTimeout(() => {
-        try {
-          const preview = URL.createObjectURL(file);
-          uploadedFile.preview = preview;
-          // Trigger re-render with new preview
-          onFilesChange([...files]);
-        } catch (error) {
-          console.warn('Failed to create image preview:', error);
-        }
-      }, 0);
-    }
-
     return uploadedFile;
-  }, [files, onFilesChange]);
+  }, []);
 
   const handleFileSelect = useCallback(async (selectedFiles: FileList | null) => {
     if (!selectedFiles) return;
@@ -221,7 +207,9 @@ export function DocumentUpload({
           errors.push(error);
           continue;
         }
-        newFiles.push(processFile(file));
+        // For default mode, just create local file object (no server upload)
+        const uploadedFile = processFile(file);
+        newFiles.push(uploadedFile);
       }
     }
 

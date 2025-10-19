@@ -13,7 +13,7 @@ export default async function PropertyRequestsPage({
   await requireUser();
   const db = await supabaseServer();
 
-  const { data: requests } = await db
+  const { data: requests, error: requestsError } = await db
     .from('requests')
     .select(`
       id,
@@ -38,6 +38,9 @@ export default async function PropertyRequestsPage({
     .is('archived_at', null) // Exclude archived requests by default
     .order('created_at', { ascending: false });
 
+  console.log('Property ID:', id);
+  console.log('Requests query result:', { requests, requestsError });
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -45,13 +48,23 @@ export default async function PropertyRequestsPage({
         <RequestForm propertyId={id} />
       </div>
 
+      {requestsError && (
+        <Card>
+          <CardContent className="py-8">
+            <div className="text-center text-danger">
+              <p>Error loading requests: {requestsError.message}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {requests && requests.length > 0 ? (
         <div className="space-y-4">
           {requests.map((request) => (
             <RequestCard key={request.id} request={request} propertyId={id} />
           ))}
         </div>
-      ) : (
+      ) : !requestsError && (
         <Card>
           <CardContent className="py-16">
             <div className="text-center space-y-6">

@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { EditRequestModal } from './EditRequestModal';
 import { ResendNotificationModal } from './ResendNotificationModal';
-import { RequestActionsMenu } from './RequestActionsMenu';
+import { RequestActions } from './RequestActions';
 
 interface RequestItem {
   id: string;
@@ -76,7 +76,7 @@ export function RequestCard({ request }: { request: Request; propertyId: string 
               >
                 Resend
               </Button>
-              <RequestActionsMenu 
+              <RequestActions 
                 requestId={request.id}
                 isArchived={!!request.archived_at}
                 hasFiles={false} // TODO: Check if files exist

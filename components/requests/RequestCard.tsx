@@ -76,11 +76,7 @@ export function RequestCard({ request }: { request: Request; propertyId: string 
               >
                 Resend
               </Button>
-              <RequestActions 
-                requestId={request.id}
-                isArchived={!!request.archived_at}
-                hasFiles={false} // TODO: Check if files exist
-              />
+              <RequestActions />
             </div>
           </div>
         </div>

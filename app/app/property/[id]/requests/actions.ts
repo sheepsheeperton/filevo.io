@@ -16,7 +16,7 @@ async function simulateNotification(data: {
   request: { id: string; title: string; request_items: Array<{ tag: string; upload_token: string }> };
   items: string[];
   uploadedFiles?: Array<{ name: string; size: number; type: string }>;
-}) {
+}, db: Awaited<ReturnType<typeof supabaseServer>>) {
   try {
     console.log('Sending notification:', {
       recipient: data.recipient,
@@ -38,13 +38,75 @@ async function simulateNotification(data: {
     if (data.notification.preferredChannel === 'email' || data.notification.preferredChannel === 'both') {
       const emailContent = generateEmailContent(data.request.title, data.items, uploadLinks, data.uploadedFiles);
       
+      // Prepare attachments if uploaded files exist
+      const attachments: Array<{ filename: string; content: string; type: string }> = [];
+      if (data.uploadedFiles && data.uploadedFiles.length > 0) {
+        try {
+          // Get uploaded file records from database
+          const { data: fileRecords } = await db
+            .from('files')
+            .select('file_name, file_path, file_type')
+            .eq('request_id', data.request.id)
+            .in('file_name', data.uploadedFiles.map(f => f.name));
+
+          // Download files from Supabase Storage and convert to base64
+          for (const fileRecord of fileRecords || []) {
+            try {
+              const { data: fileData, error: downloadError } = await db.storage
+                .from('files')
+                .download(fileRecord.file_path);
+
+              if (downloadError) {
+                console.error('Error downloading file for attachment:', downloadError);
+                continue;
+              }
+
+              // Convert blob to base64
+              const arrayBuffer = await fileData.arrayBuffer();
+              const base64Content = Buffer.from(arrayBuffer).toString('base64');
+
+              attachments.push({
+                filename: fileRecord.file_name,
+                content: base64Content,
+                type: fileRecord.file_type
+              });
+            } catch (error) {
+              console.error('Error processing file attachment:', error);
+              continue;
+            }
+          }
+        } catch (error) {
+          console.error('Error preparing attachments:', error);
+          // Continue without attachments if there's an error
+        }
+      }
+      
       console.log('Attempting to send email via Resend:', {
         from: process.env.RESEND_FROM_EMAIL || 'noreply@filevo.io',
         to: data.recipient.email,
         subject: `Document Request: ${data.request.title}`,
         hasApiKey: !!process.env.RESEND_API_KEY,
-        apiKeyLength: process.env.RESEND_API_KEY?.length || 0
+        apiKeyLength: process.env.RESEND_API_KEY?.length || 0,
+        attachmentCount: attachments.length
       });
+      
+      const emailPayload: {
+        from: string;
+        to: string[];
+        subject: string;
+        html: string;
+        attachments?: Array<{ filename: string; content: string; type: string }>;
+      } = {
+        from: process.env.RESEND_FROM_EMAIL || 'noreply@filevo.io',
+        to: [data.recipient.email],
+        subject: `Document Request: ${data.request.title}`,
+        html: emailContent,
+      };
+
+      // Add attachments if any
+      if (attachments.length > 0) {
+        emailPayload.attachments = attachments;
+      }
       
       const emailResponse = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -52,12 +114,7 @@ async function simulateNotification(data: {
           'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          from: process.env.RESEND_FROM_EMAIL || 'noreply@filevo.io',
-          to: [data.recipient.email],
-          subject: `Document Request: ${data.request.title}`,
-          html: emailContent,
-        }),
+        body: JSON.stringify(emailPayload),
       });
 
       console.log('Resend API response status:', emailResponse.status);
@@ -356,7 +413,7 @@ export async function createRequest(data: {
               size: file.size,
               type: file.type
             }))
-          });
+          }, db);
 
           if (notificationResult.success) {
             // Update notified_at timestamp
@@ -486,7 +543,7 @@ export async function resendNotification(data: {
       notification: data.notification,
       request: request,
       items: request.request_items.map((item: { tag: string; upload_token: string }) => item.tag),
-    });
+    }, db);
 
     if (notificationResult.success) {
       // Update notified_at timestamp

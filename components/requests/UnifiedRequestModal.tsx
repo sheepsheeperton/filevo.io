@@ -100,6 +100,14 @@ export function UnifiedRequestModal({
       presetItemsCount: presetItems.length 
     });
     
+    // Log potential performance issues
+    if (properties.length > 50) {
+      console.warn('⚠️ Large properties list detected:', properties.length, 'properties');
+    }
+    if (presetItems.length > 10) {
+      console.warn('⚠️ Large preset items detected:', presetItems.length, 'items');
+    }
+    
     // Comprehensive network monitoring
     const originalFetch = window.fetch;
     let networkCalls = 0;

@@ -23,8 +23,10 @@ export default async function ActivityPage() {
       due_date, 
       property_id, 
       created_at,
+      archived_at,
       request_items(id, status, tag)
     `)
+    .is('archived_at', null) // Exclude archived requests
     .order('created_at', { ascending: false });
 
   return (

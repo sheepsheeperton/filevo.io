@@ -21,6 +21,7 @@ export default async function PropertyRequestsPage({
       description,
       due_date,
       created_at,
+      archived_at,
       recipient_name,
       recipient_email,
       recipient_phone,
@@ -34,10 +35,8 @@ export default async function PropertyRequestsPage({
       )
     `)
     .eq('property_id', id)
+    .is('archived_at', null) // Exclude archived requests by default
     .order('created_at', { ascending: false });
-
-  console.log('Property ID:', id);
-  console.log('Requests query result:', { requests, requestsError });
 
   return (
     <div className="space-y-6">

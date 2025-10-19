@@ -15,6 +15,7 @@ async function simulateNotification(data: {
   notification: { notifyNow: boolean; preferredChannel: 'email' | 'sms' | 'both' };
   request: { id: string; title: string; request_items: Array<{ tag: string; upload_token: string }> };
   items: string[];
+  uploadedFiles?: Array<{ name: string; size: number; type: string }>;
 }) {
   try {
     console.log('Sending notification:', {
@@ -35,7 +36,7 @@ async function simulateNotification(data: {
 
     // Send email via Resend
     if (data.notification.preferredChannel === 'email' || data.notification.preferredChannel === 'both') {
-      const emailContent = generateEmailContent(data.request.title, data.items, uploadLinks);
+      const emailContent = generateEmailContent(data.request.title, data.items, uploadLinks, data.uploadedFiles);
       
       console.log('Attempting to send email via Resend:', {
         from: process.env.RESEND_FROM_EMAIL || 'noreply@filevo.io',
@@ -102,7 +103,7 @@ async function simulateNotification(data: {
   }
 }
 
-function generateEmailContent(title: string, items: string[], uploadLinks: { tag: string; link: string }[]): string {
+function generateEmailContent(title: string, items: string[], uploadLinks: { tag: string; link: string }[], uploadedFiles?: Array<{ name: string; size: number; type: string }>): string {
   // Always use production URL for email content, not localhost
   const baseUrl = 'https://www.filevo.io';
   
@@ -151,6 +152,20 @@ function generateEmailContent(title: string, items: string[], uploadLinks: { tag
             `).join('')}
           </div>
           
+          ${uploadedFiles && uploadedFiles.length > 0 ? `
+          <div style="background-color: #f0fdf4; border-left: 4px solid #22c55e; padding: 16px; margin: 24px 0; border-radius: 0 8px 8px 0;">
+            <h3 style="color: #166534; font-size: 16px; font-weight: 600; margin: 0 0 12px 0;">📎 Documents Included</h3>
+            <p style="color: #166534; font-size: 14px; margin: 0 0 12px 0;">The following documents have been included with this request:</p>
+            <ul style="color: #166534; font-size: 14px; margin: 0; padding-left: 20px;">
+              ${uploadedFiles.map(file => `
+                <li style="margin-bottom: 4px;">
+                  <strong>${file.name}</strong> (${Math.round(file.size / 1024)}KB)
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+          ` : ''}
+          
           <div style="background-color: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 16px; margin: 24px 0; border-radius: 0 8px 8px 0;">
             <p style="color: #0c4a6e; font-size: 14px; margin: 0; font-weight: 500;">
               💡 <strong>Accepted file types:</strong> PDF, DOC, DOCX, JPG, PNG, GIF (Max 10MB each)
@@ -193,6 +208,7 @@ export async function createRequest(data: {
   description?: string | null;
   dueDate?: string | null;
   items: string[];
+  uploadedFiles?: File[];
   recipient?: {
     name: string;
     email: string;
@@ -263,6 +279,59 @@ export async function createRequest(data: {
       return { success: false, error: `Failed to create request items: ${itemsError.message}` };
     }
 
+    // Handle uploaded files if any
+    const uploadedFileIds: string[] = [];
+    if (data.uploadedFiles && data.uploadedFiles.length > 0) {
+      try {
+        // Upload files to Supabase Storage
+        for (const file of data.uploadedFiles) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${request.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+          
+          // Convert File to ArrayBuffer for Supabase
+          const arrayBuffer = await file.arrayBuffer();
+          
+          const { data: uploadData, error: uploadError } = await db.storage
+            .from('files')
+            .upload(fileName, arrayBuffer, {
+              contentType: file.type,
+              cacheControl: '3600',
+              upsert: false
+            });
+
+          if (uploadError) {
+            console.error('Error uploading file:', uploadError);
+            continue; // Continue with other files
+          }
+
+          // Create file record in database
+          const { data: fileRecord, error: fileError } = await db
+            .from('files')
+            .insert({
+              file_name: file.name,
+              file_path: uploadData.path,
+              file_size: file.size,
+              file_type: file.type,
+              request_id: request.id,
+              uploaded_by: user.id,
+              uploaded_at: new Date().toISOString()
+            })
+            .select()
+            .single();
+
+          if (fileError) {
+            console.error('Error creating file record:', fileError);
+            continue; // Continue with other files
+          }
+
+          uploadedFileIds.push(fileRecord.id);
+        }
+      } catch (error) {
+        console.error('Error handling uploaded files:', error);
+        // Don't fail the request creation if file upload fails
+      }
+    }
+
     // Handle messaging if notification is enabled
     let notificationSent = false;
     if (data.notification?.notifyNow && data.recipient) {
@@ -282,6 +351,11 @@ export async function createRequest(data: {
             notification: data.notification,
             request: { ...request, request_items: items },
             items: data.items,
+            uploadedFiles: data.uploadedFiles?.map(file => ({
+              name: file.name,
+              size: file.size,
+              type: file.type
+            }))
           });
 
           if (notificationResult.success) {

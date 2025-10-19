@@ -6,13 +6,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { DocumentUpload } from '@/components/ui/DocumentUpload';
 import { createRequest } from '@/app/app/property/[id]/requests/actions';
 import { SharePanel } from './SharePanel';
-import { X } from 'lucide-react';
+import { X, Upload } from 'lucide-react';
 
 interface RequestItem {
   tag: string;
   id: string;
+}
+
+interface UploadedFile {
+  id: string;
+  file: File;
+  preview?: string;
 }
 
 interface RecipientData {
@@ -38,6 +45,7 @@ export function RequestModal({ onClose, presetItems = [], properties }: RequestM
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [items, setItems] = useState<RequestItem[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [recipient, setRecipient] = useState<RecipientData>({ name: '', email: '', phone: '' });
   const [notification, setNotification] = useState<NotificationData>({ notifyNow: false, preferredChannel: 'email' });
   const [isLoading, setIsLoading] = useState(false);
@@ -103,6 +111,7 @@ export function RequestModal({ onClose, presetItems = [], properties }: RequestM
         description: description.trim(),
         dueDate: dueDate || null,
         items: validItems.map(item => item.tag.trim()),
+        uploadedFiles: uploadedFiles.map(uf => uf.file),
         recipient,
         notification
       });
@@ -242,6 +251,22 @@ export function RequestModal({ onClose, presetItems = [], properties }: RequestM
                   )}
                 </div>
               ))}
+            </div>
+
+            {/* Document Upload */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Upload className="h-4 w-4 text-fg-muted" />
+                <Label>Upload Documents to Send</Label>
+              </div>
+              <p className="text-sm text-fg-muted">
+                Upload documents that will be sent to the tenant via email along with the request.
+              </p>
+              <DocumentUpload
+                files={uploadedFiles}
+                onFilesChange={setUploadedFiles}
+                maxFiles={10}
+              />
             </div>
 
             {/* Recipient Information */}

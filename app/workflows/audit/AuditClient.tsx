@@ -5,7 +5,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CategoryChips } from '@/components/ui/CategoryChips';
 import { inferCategoryFromRequest } from '@/lib/categories';
 import { fmtDate } from '@/lib/format';
 import { AuditPacketDrawer } from '@/components/drawers/AuditPacketDrawer';
@@ -195,15 +194,6 @@ export function AuditClient({ properties, requests, files }: AuditClientProps) {
             Create Audit Packet
           </Button>
         </div>
-      </div>
-
-      {/* Category Chips */}
-      <div className="space-y-4">
-        <CategoryChips 
-          value="audit" 
-          onChange={() => {}} // Fixed to audit
-          showAll={false}
-        />
       </div>
 
       {/* Recent Packets */}

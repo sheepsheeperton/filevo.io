@@ -16,11 +16,11 @@ import {
 } from "lucide-react";
 
 const nav = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/app/properties", label: "Onboarding & Renewals", icon: UserPlus },
-  { href: "/workflows/maintenance", label: "Maintenance & Vendor Receipts", icon: Wrench },
-  { href: "/workflows/audit", label: "Ownership / Accounting / Audit", icon: FolderArchive },
-  { href: "/app/activity", label: "Activity", icon: Activity },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, accent: null },
+  { href: "/app/properties", label: "Onboarding & Renewals", icon: UserPlus, accent: "teal" },
+  { href: "/workflows/maintenance", label: "Maintenance & Vendor Receipts", icon: Wrench, accent: "amber" },
+  { href: "/workflows/audit", label: "Ownership / Accounting / Audit", icon: FolderArchive, accent: "violet" },
+  { href: "/app/activity", label: "Activity", icon: Activity, accent: null },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -77,17 +77,44 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             {nav.map((n) => {
               const active = pathname?.startsWith(n.href);
               const IconComponent = n.icon;
+              
+              // Define accent colors
+              const accentStyles = {
+                teal: {
+                  active: "bg-teal-900/20 text-teal-300 border border-teal-800/30",
+                  hover: "hover:bg-teal-900/10",
+                  icon: "text-teal-300"
+                },
+                amber: {
+                  active: "bg-amber-900/20 text-amber-300 border border-amber-800/30",
+                  hover: "hover:bg-amber-900/10",
+                  icon: "text-amber-300"
+                },
+                violet: {
+                  active: "bg-violet-900/20 text-violet-300 border border-violet-800/30",
+                  hover: "hover:bg-violet-900/10",
+                  icon: "text-violet-300"
+                }
+              };
+              
+              const accent = n.accent ? accentStyles[n.accent as keyof typeof accentStyles] : null;
+              
               return (
                 <li key={n.href}>
                   <Link
                     href={n.href}
                     onClick={() => setSidebarOpen(false)} // Close sidebar on mobile when navigating
+                    aria-current={active ? "page" : undefined}
                     className={clsx(
                       "flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:hsl(var(--ring))]",
-                      active ? "bg-elev text-fg" : "text-fg-muted hover:bg-elev"
+                      active && accent ? accent.active : active ? "bg-elev text-fg" : "text-fg-muted hover:bg-elev",
+                      !active && accent ? accent.hover : ""
                     )}
                   >
-                    <IconComponent className="h-4 w-4 flex-shrink-0" />
+                    <IconComponent className={clsx(
+                      "h-4 w-4 flex-shrink-0",
+                      active && accent ? accent.icon : ""
+                    )} />
                     <span className="truncate">{n.label}</span>
                   </Link>
                 </li>

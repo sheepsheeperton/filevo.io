@@ -5,7 +5,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CategoryChips } from '@/components/ui/CategoryChips';
 import { inferCategoryFromRequest } from '@/lib/categories';
 import { fmtDate } from '@/lib/format';
 import { UploadReceiptModal } from '@/components/modals/UploadReceiptModal';
@@ -187,15 +186,6 @@ export function MaintenanceClient({ properties, requests, files }: MaintenanceCl
             Upload Receipt
           </Button>
         </div>
-      </div>
-
-      {/* Category Chips */}
-      <div className="space-y-4">
-        <CategoryChips 
-          value="maintenance" 
-          onChange={() => {}} // Fixed to maintenance
-          showAll={false}
-        />
       </div>
 
       {/* Filters */}

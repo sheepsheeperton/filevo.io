@@ -1,9 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { CategoryChips } from '@/components/ui/CategoryChips';
 import { CategoryKey, inferCategoryFromRequest, getCategoryColor } from '@/lib/categories';
 
 interface Activity {
@@ -42,18 +40,6 @@ interface ActivityWithCategory extends Activity {
 }
 
 export function ActivityClient({ activities, requests }: ActivityClientProps) {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const [selectedCategory, setSelectedCategory] = useState<CategoryKey>('all');
-
-  // Initialize category from URL params
-  useEffect(() => {
-    const cat = searchParams?.get('cat') as CategoryKey;
-    if (cat && ['all', 'onboarding', 'maintenance', 'audit'].includes(cat)) {
-      setSelectedCategory(cat);
-    }
-  }, [searchParams]);
-
   // Enhance activities with category information
   const enhancedActivities = useMemo(() => {
     return activities.map(activity => {
@@ -77,17 +63,11 @@ export function ActivityClient({ activities, requests }: ActivityClientProps) {
     });
   }, [activities, requests]);
 
-  // Filter activities by category
-  const filteredActivities = useMemo(() => {
-    if (selectedCategory === 'all') return enhancedActivities;
-    return enhancedActivities.filter(a => a.category === selectedCategory);
-  }, [enhancedActivities, selectedCategory]);
-
   // Group activities by day
   const groupedActivities = useMemo(() => {
     const groups: { [key: string]: ActivityWithCategory[] } = {};
     
-    filteredActivities.forEach(activity => {
+    enhancedActivities.forEach(activity => {
       const date = new Date(activity.created_at).toLocaleDateString('en-US', {
         weekday: 'long',
         year: 'numeric',
@@ -102,18 +82,7 @@ export function ActivityClient({ activities, requests }: ActivityClientProps) {
     });
 
     return groups;
-  }, [filteredActivities]);
-
-  const handleCategoryChange = (category: CategoryKey) => {
-    setSelectedCategory(category);
-    const params = new URLSearchParams(searchParams || '');
-    if (category === 'all') {
-      params.delete('cat');
-    } else {
-      params.set('cat', category);
-    }
-    router.push(`/app/activity?${params.toString()}`);
-  };
+  }, [enhancedActivities]);
 
   const getActivityIcon = (action: string) => {
     switch (action) {
@@ -179,18 +148,13 @@ export function ActivityClient({ activities, requests }: ActivityClientProps) {
     }
   };
 
-  if (!filteredActivities.length) {
+  if (!enhancedActivities.length) {
     return (
       <div className="max-w-6xl space-y-8">
         <div>
           <h1 className="text-3xl font-semibold">Activity Log</h1>
           <p className="text-fg-muted mt-2">Complete timeline of property changes, document uploads, and request updates</p>
         </div>
-
-        <CategoryChips 
-          value={selectedCategory} 
-          onChange={handleCategoryChange}
-        />
 
         <Card>
           <CardContent className="py-16">
@@ -227,11 +191,6 @@ export function ActivityClient({ activities, requests }: ActivityClientProps) {
         <h1 className="text-3xl font-semibold">Activity Log</h1>
         <p className="text-fg-muted mt-2">Complete timeline of property changes, document uploads, and request updates</p>
       </div>
-
-      <CategoryChips 
-        value={selectedCategory} 
-        onChange={handleCategoryChange}
-      />
 
       <div className="space-y-6">
         {Object.entries(groupedActivities).map(([date, dayActivities]) => (

@@ -3,7 +3,6 @@
 import { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CategoryChips } from '@/components/ui/CategoryChips';
 import { KpiCard } from '@/components/ui/KpiCard';
 import { CategoryKey, inferCategoryFromRequest, getCategoryLabel } from '@/lib/categories';
 import Link from 'next/link';
@@ -139,15 +138,6 @@ export function WorkflowClient({ category, requests, allFiles }: WorkflowClientP
             <Button>New Property</Button>
           </Link>
         </div>
-      </div>
-
-      {/* Category Chips - Fixed to current category */}
-      <div className="space-y-4">
-        <CategoryChips 
-          value={category} 
-          onChange={() => {}} // No-op since category is fixed
-          showAll={false}
-        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

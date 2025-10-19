@@ -1,12 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CategoryChips } from '@/components/ui/CategoryChips';
 import { KpiCard } from '@/components/ui/KpiCard';
-import { CategoryKey, inferCategoryFromRequest } from '@/lib/categories';
 import Link from 'next/link';
 
 interface Property {
@@ -44,53 +40,35 @@ interface DashboardClientProps {
 }
 
 export function DashboardClient({ properties, requests, allFiles }: DashboardClientProps) {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const [selectedCategory, setSelectedCategory] = useState<CategoryKey>('all');
-
-  // Initialize category from URL params
-  useEffect(() => {
-    const cat = searchParams?.get('cat') as CategoryKey;
-    if (cat && ['all', 'onboarding', 'maintenance', 'audit'].includes(cat)) {
-      setSelectedCategory(cat);
-    }
-  }, [searchParams]);
-
-  // Filter requests by category
-  const filteredRequests = useMemo(() => {
-    if (selectedCategory === 'all') return requests;
-    return requests.filter(r => inferCategoryFromRequest(r) === selectedCategory);
-  }, [requests, selectedCategory]);
-
-  // Calculate KPIs based on filtered requests
+  // Calculate KPIs for all requests
   const today = new Date();
   const fiveDaysFromNow = new Date();
   fiveDaysFromNow.setDate(today.getDate() + 5);
 
-  const overdueRequests = filteredRequests.filter((r) => {
+  const overdueRequests = requests.filter((r) => {
     if (!r.due_date) return false;
     const dueDate = new Date(r.due_date);
     const items = r.request_items || [];
     return dueDate < today && items.some((i) => i.status === 'pending');
   }).length;
 
-  const upcomingDeadlines = filteredRequests.filter((r) => {
+  const upcomingDeadlines = requests.filter((r) => {
     if (!r.due_date) return false;
     const dueDate = new Date(r.due_date);
     return dueDate >= today && dueDate <= fiveDaysFromNow;
   }).length;
 
-  const pendingDocuments = filteredRequests.reduce((total, r) => {
+  const pendingDocuments = requests.reduce((total, r) => {
     const items = r.request_items || [];
     return total + items.filter((i) => i.status === 'pending').length;
   }, 0);
 
-  const completedRequests = filteredRequests.filter((r) => {
+  const completedRequests = requests.filter((r) => {
     const items = r.request_items || [];
     return items.length > 0 && items.every((i) => i.status === 'received');
   }).length;
 
-  const inProgressRequests = filteredRequests.filter((r) => {
+  const inProgressRequests = requests.filter((r) => {
     const items = r.request_items || [];
     return items.some((i) => i.status === 'pending');
   }).length;
@@ -117,44 +95,7 @@ export function DashboardClient({ properties, requests, allFiles }: DashboardCli
   const maxUploads = Math.max(...uploadsByDay.map((d) => d.count), 1);
 
   // Get recent requests (last 5)
-  const recentRequests = filteredRequests.slice(0, 5);
-
-  const handleCategoryChange = (category: CategoryKey) => {
-    setSelectedCategory(category);
-    const params = new URLSearchParams(searchParams || '');
-    if (category === 'all') {
-      params.delete('cat');
-    } else {
-      params.set('cat', category);
-    }
-    router.push(`/dashboard?${params.toString()}`);
-  };
-
-  const getCategoryDescription = (category: CategoryKey) => {
-    switch (category) {
-      case 'onboarding':
-        return 'Onboarding requests on track';
-      case 'maintenance':
-        return 'Maintenance requests on track';
-      case 'audit':
-        return 'Audit requests on track';
-      default:
-        return 'All requests on track';
-    }
-  };
-
-  const getCategoryHelperText = (category: CategoryKey) => {
-    switch (category) {
-      case 'onboarding':
-        return 'Onboarding requests past their due date with pending documents';
-      case 'maintenance':
-        return 'Maintenance requests past their due date with pending documents';
-      case 'audit':
-        return 'Audit requests past their due date with pending documents';
-      default:
-        return 'Requests past their due date with pending documents';
-    }
-  };
+  const recentRequests = requests.slice(0, 5);
 
   return (
     <div className="max-w-6xl space-y-8">
@@ -173,20 +114,12 @@ export function DashboardClient({ properties, requests, allFiles }: DashboardCli
         </div>
       </div>
 
-      {/* Category Chips */}
-      <div className="space-y-4">
-        <CategoryChips 
-          value={selectedCategory} 
-          onChange={handleCategoryChange}
-        />
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <KpiCard
           title="Overdue Requests"
           count={overdueRequests}
-          description={overdueRequests === 0 ? getCategoryDescription(selectedCategory) : `${overdueRequests} ${overdueRequests === 1 ? 'request' : 'requests'} past due`}
-          helperText={getCategoryHelperText(selectedCategory)}
+          description={overdueRequests === 0 ? 'All requests on track' : `${overdueRequests} ${overdueRequests === 1 ? 'request' : 'requests'} past due`}
+          helperText="Requests past their due date with pending documents"
           color="red"
         />
 

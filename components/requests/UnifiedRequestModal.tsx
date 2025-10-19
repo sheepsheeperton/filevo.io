@@ -362,7 +362,6 @@ export function UnifiedRequestModal({
                 files={uploadedFiles}
                 onFilesChange={setUploadedFiles}
                 maxFiles={5}
-                acceptedTypes={['image/*', 'application/pdf', '.doc', '.docx']}
               />
             </div>
 

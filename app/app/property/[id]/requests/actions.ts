@@ -4,6 +4,7 @@ import { requireUser } from '@/lib/auth';
 import { supabaseServer } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { logActivity } from '@/lib/activity';
+import { sendEmail, getRequestAttachmentsForEmail } from '@/lib/email-service';
 import { randomBytes } from 'crypto';
 
 function generateUploadToken(): string {
@@ -39,68 +40,46 @@ async function simulateNotification(data: {
     if (data.notification.preferredChannel === 'email' || data.notification.preferredChannel === 'both') {
       const emailContent = generateEmailContent(data.request.title, data.items, uploadLinks, data.uploadedFiles);
       
-      // Use prepared attachments if available
-      const attachments = data.attachments || [];
-      
-      console.log('Attempting to send email via Resend:', {
-        from: process.env.RESEND_FROM_EMAIL || 'noreply@filevo.io',
-        to: data.recipient.email,
-        subject: `Document Request: ${data.request.title}`,
-        hasApiKey: !!process.env.RESEND_API_KEY,
-        apiKeyLength: process.env.RESEND_API_KEY?.length || 0,
-        attachmentCount: attachments.length,
-        attachments: attachments.map(att => ({
-          filename: att.filename,
-          contentType: att.contentType,
-          contentLength: att.content.length
-        }))
-      });
-      
-      const emailPayload: {
-        from: string;
-        to: string[];
-        subject: string;
-        html: string;
-        attachments?: Array<{ filename: string; content: string; contentType: string }>;
-      } = {
-        from: process.env.RESEND_FROM_EMAIL || 'noreply@filevo.io',
-        to: [data.recipient.email],
-        subject: `Document Request: ${data.request.title}`,
-        html: emailContent,
-      };
+      try {
+        // Get request attachments for email
+        const { attachments: emailAttachments, downloadLinks } = await getRequestAttachmentsForEmail(data.request.id);
+        
+        console.log('Email attachments prepared:', {
+          attachmentCount: emailAttachments.length,
+          downloadLinkCount: downloadLinks.length,
+          attachments: emailAttachments.map(att => ({
+            filename: att.filename,
+            mime: att.mime,
+            size: att.content.length
+          }))
+        });
 
-      // Add attachments if any
-      if (attachments.length > 0) {
-        emailPayload.attachments = attachments;
-      }
-      
-      console.log('Email payload being sent:', {
-        ...emailPayload,
-        attachments: emailPayload.attachments?.map(att => ({
-          filename: att.filename,
-          contentType: att.contentType,
-          contentLength: att.content.length
-        }))
-      });
-      
-      const emailResponse = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(emailPayload),
-      });
+        // Add download links to email content if any
+        let finalEmailContent = emailContent;
+        if (downloadLinks.length > 0) {
+          const downloadSection = `
+            <div style="background-color: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 16px; margin: 24px 0; border-radius: 0 8px 8px 0;">
+              <h3 style="color: #0c4a6e; font-size: 16px; margin: 0 0 12px 0;">📎 Additional Files</h3>
+              <p style="color: #0c4a6e; font-size: 14px; margin: 0 0 8px 0;">The following files are attached to this request:</p>
+              <ul style="color: #0c4a6e; font-size: 14px; margin: 0; padding-left: 20px;">
+                ${downloadLinks.map(link => `<li><a href="${link.url}" style="color: #0ea5e9; text-decoration: none;">${link.filename}</a> (${Math.round(link.size / 1024)}KB)</li>`).join('')}
+              </ul>
+            </div>
+          `;
+          finalEmailContent = emailContent.replace('</div>', downloadSection + '</div>');
+        }
 
-      console.log('Resend API response status:', emailResponse.status);
+        await sendEmail({
+          to: data.recipient.email,
+          subject: `Document Request: ${data.request.title}`,
+          html: finalEmailContent,
+          attachments: emailAttachments
+        });
 
-      if (!emailResponse.ok) {
-        const errorData = await emailResponse.json();
-        console.error('Resend email failed:', errorData);
+        console.log('Email sent successfully with attachments');
+      } catch (error) {
+        console.error('Failed to send email with attachments:', error);
         return { success: false, error: 'Failed to send email notification' };
-      } else {
-        const successData = await emailResponse.json();
-        console.log('Resend email sent successfully:', successData);
       }
     }
 

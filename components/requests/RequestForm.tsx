@@ -11,6 +11,7 @@ import { createRequest } from '@/app/app/property/[id]/requests/actions';
 
 // Lazy load heavy components
 const AIComposeModal = lazy(() => import('./AIComposeModal').then(module => ({ default: module.AIComposeModal })));
+const DocumentUpload = lazy(() => import('@/components/ui/DocumentUpload').then(module => ({ default: module.DocumentUpload })));
 
 // Performance monitoring
 const performanceMark = (name: string) => {
@@ -141,6 +142,11 @@ export function RequestForm({
     request_items: Array<{ id: string; tag: string; upload_token: string }>;
   } | null>(null);
 
+  // Two-phase flow state
+  const [phase, setPhase] = useState<'draft' | 'attachments' | 'send'>('draft');
+  const [draftRequestId, setDraftRequestId] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<Array<{ id: string; file: File; preview?: string; storagePath?: string }>>([]);
+
   // Optimized callbacks
   const handlePresetChange = useCallback((preset: 'onboarding' | 'renewal') => {
     setSelectedPreset(preset);
@@ -162,26 +168,25 @@ export function RequestForm({
     setItems(prev => prev.map(item => item.id === id ? { ...item, tag } : item));
   }, []);
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    performanceMark('form-submit-start');
-    console.log('📝 Form submission started - single server call expected');
+  // Create draft request (phase 1)
+  const createDraftRequest = useCallback(async () => {
+    performanceMark('draft-create-start');
+    console.log('📝 Creating draft request');
     
     if (!formSelectedPropertyId) {
       setError('Please select a property');
-      return;
+      return false;
     }
 
     if (!title.trim()) {
       setError('Please enter a title');
-      return;
+      return false;
     }
 
     const validItems = items.filter(item => item.tag.trim());
     if (validItems.length === 0) {
       setError('Please add at least one document item');
-      return;
+      return false;
     }
 
     setIsLoading(true);
@@ -194,7 +199,52 @@ export function RequestForm({
         description: description.trim(),
         dueDate: dueDate || null,
         items: validItems.map(item => item.tag.trim()),
-        uploadedFiles: [], // No file uploads in v1
+        uploadedFiles: [], // No attachments yet
+        recipient,
+        notification: {
+          notifyNow: false, // Don't send yet
+          preferredChannel
+        }
+      });
+
+      if (result.success && result.data) {
+        setDraftRequestId(result.data.id);
+        setPhase('attachments');
+        performanceMark('draft-create-success');
+        performanceMeasure('draft-create', 'draft-create-start', 'draft-create-success');
+        return true;
+      } else {
+        setError(result.error || 'Failed to create request');
+        return false;
+      }
+    } catch (error) {
+      console.error('Draft creation error:', error);
+      setError('An unexpected error occurred');
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [formSelectedPropertyId, title, description, dueDate, items, recipient, preferredChannel]);
+
+  // Send final request (phase 2)
+  const sendFinalRequest = useCallback(async () => {
+    if (!draftRequestId) return;
+
+    performanceMark('final-send-start');
+    console.log('📧 Sending final request with attachments');
+    
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Update request to sent status and trigger notifications
+      const result = await createRequest({
+        propertyId: formSelectedPropertyId,
+        title: title.trim(),
+        description: description.trim(),
+        dueDate: dueDate || null,
+        items: items.filter(item => item.tag.trim()).map(item => item.tag.trim()),
+        uploadedFiles: attachments.map(att => att.file),
         recipient,
         notification: {
           notifyNow,
@@ -205,18 +255,30 @@ export function RequestForm({
       if (result.success && result.data) {
         setCreatedRequest(result.data);
         setShowSharePanel(true);
-        performanceMark('form-submit-success');
-        performanceMeasure('form-submit', 'form-submit-start', 'form-submit-success');
+        performanceMark('final-send-success');
+        performanceMeasure('final-send', 'final-send-start', 'final-send-success');
       } else {
-        setError(result.error || 'Failed to create request');
+        setError(result.error || 'Failed to send request');
       }
     } catch (error) {
-      console.error('Request creation error:', error);
+      console.error('Final send error:', error);
       setError('An unexpected error occurred');
     } finally {
       setIsLoading(false);
     }
-  }, [formSelectedPropertyId, title, description, dueDate, items, recipient, notifyNow, preferredChannel]);
+  }, [draftRequestId, formSelectedPropertyId, title, description, dueDate, items, attachments, recipient, notifyNow, preferredChannel]);
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (phase === 'draft') {
+      await createDraftRequest();
+    } else if (phase === 'attachments') {
+      setPhase('send');
+    } else if (phase === 'send') {
+      await sendFinalRequest();
+    }
+  }, [phase, createDraftRequest, sendFinalRequest]);
 
   const handleClose = useCallback(() => {
     performanceMark('form-close');
@@ -233,6 +295,15 @@ export function RequestForm({
     performanceMark('ai-compose-open');
     console.log('🤖 AI Compose opening - lazy loading expected');
     setShowAICompose(true);
+  }, []);
+
+  // Attachment handlers
+  const handleAttachmentUpload = useCallback((file: { id: string; file: File; preview?: string }, storagePath: string) => {
+    setAttachments(prev => [...prev, { ...file, storagePath }]);
+  }, []);
+
+  const handleAttachmentError = useCallback((error: string) => {
+    setError(error);
   }, []);
 
   // Success panel
@@ -564,10 +635,38 @@ export function RequestForm({
               </div>
             )}
 
+            {/* Attachments Section - only in attachments phase */}
+            {phase === 'attachments' && draftRequestId && (
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Attachments (Optional)</Label>
+                <Suspense fallback={
+                  <div className="p-4 border border-border rounded-md">
+                    <div className="text-center text-fg-muted">Loading file upload...</div>
+                  </div>
+                }>
+                  <DocumentUpload
+                    files={attachments}
+                    onFilesChange={setAttachments}
+                    mode="request-attachment"
+                    requestId={draftRequestId}
+                    onUploadComplete={handleAttachmentUpload}
+                    onUploadError={handleAttachmentError}
+                    maxFiles={5}
+                  />
+                </Suspense>
+              </div>
+            )}
+
             {/* Submit Button */}
             <div className="flex gap-2">
               <Button type="submit" disabled={isLoading} className="flex-1">
-                {isLoading ? 'Creating...' : 'Create Request'}
+                {isLoading ? (
+                  phase === 'draft' ? 'Creating...' : 
+                  phase === 'attachments' ? 'Sending...' : 'Sending...'
+                ) : (
+                  phase === 'draft' ? 'Continue' : 
+                  phase === 'attachments' ? 'Send Request' : 'Send Request'
+                )}
               </Button>
               <Button type="button" variant="secondary" onClick={handleClose}>
                 Cancel

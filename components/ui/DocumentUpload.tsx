@@ -19,6 +19,10 @@ interface DocumentUploadProps {
   maxFiles?: number;
   acceptedTypes?: string[];
   className?: string;
+  mode?: 'default' | 'request-attachment';
+  requestId?: string;
+  onUploadComplete?: (file: UploadedFile, storagePath: string) => void;
+  onUploadError?: (error: string) => void;
 }
 
 // Memoize accepted types to prevent recreation
@@ -42,7 +46,11 @@ export function DocumentUpload({
   onFilesChange, 
   maxFiles = 10,
   acceptedTypes = ACCEPTED_TYPES,
-  className 
+  className,
+  mode = 'default',
+  requestId,
+  onUploadComplete,
+  onUploadError
 }: DocumentUploadProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -57,6 +65,110 @@ export function DocumentUpload({
     }
     return null;
   }, [acceptedTypes]);
+
+  // Upload file for request attachments
+  const uploadRequestAttachment = useCallback(async (file: File): Promise<string | null> => {
+    if (!requestId) {
+      onUploadError?.('Request ID is required for upload');
+      return null;
+    }
+
+    try {
+      // Get signed upload URL
+      const response = await fetch('/api/upload/get-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          requestId,
+          fileName: file.name,
+          contentType: file.type,
+          size: file.size,
+          origin: 'request_attachment',
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        onUploadError?.(errorText);
+        return null;
+      }
+
+      const { signedUrl, path } = await response.json();
+
+      // Upload file to signed URL
+      const uploadResponse = await fetch(signedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        onUploadError?.('Failed to upload file to storage');
+        return null;
+      }
+
+      // Record the file in database
+      const recordResponse = await fetch('/api/upload/record', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          requestId,
+          fileName: file.name,
+          storagePath: path,
+          tag: 'attachment',
+          origin: 'request_attachment',
+          contentType: file.type,
+          fileSize: file.size,
+        }),
+      });
+
+      if (!recordResponse.ok) {
+        const errorText = await recordResponse.text();
+        onUploadError?.(errorText);
+        return null;
+      }
+
+      return path;
+    } catch (error) {
+      console.error('Error uploading request attachment:', error);
+      onUploadError?.('Failed to upload file');
+      return null;
+    }
+  }, [requestId, onUploadError]);
+
+  // Process file for request attachment mode
+  const processFileForRequestAttachment = useCallback(async (file: File): Promise<UploadedFile | null> => {
+    const validationError = validateFile(file);
+    if (validationError) {
+      onUploadError?.(validationError);
+      return null;
+    }
+
+    const uploadedFile: UploadedFile = {
+      id: Date.now().toString(),
+      file,
+    };
+
+    // Generate preview for images
+    if (file.type.startsWith('image/')) {
+      uploadedFile.preview = URL.createObjectURL(file);
+    }
+
+    // Upload the file
+    const storagePath = await uploadRequestAttachment(file);
+    if (!storagePath) {
+      return null;
+    }
+
+    onUploadComplete?.(uploadedFile, storagePath);
+    return uploadedFile;
+  }, [validateFile, uploadRequestAttachment, onUploadComplete, onUploadError]);
 
   // Optimize file processing with debounced preview generation
   const processFile = useCallback((file: File): UploadedFile => {
@@ -84,36 +196,43 @@ export function DocumentUpload({
     return uploadedFile;
   }, [files, onFilesChange]);
 
-  const handleFileSelect = useCallback((selectedFiles: FileList | null) => {
+  const handleFileSelect = useCallback(async (selectedFiles: FileList | null) => {
     if (!selectedFiles) return;
 
     const newFiles: UploadedFile[] = [];
     const errors: string[] = [];
 
-    Array.from(selectedFiles).forEach((file) => {
-      const error = validateFile(file);
-      if (error) {
-        errors.push(error);
-        return;
-      }
-
+    // Process files based on mode
+    for (const file of Array.from(selectedFiles)) {
       // Check max files
       if (files.length + newFiles.length >= maxFiles) {
         errors.push(`Maximum ${maxFiles} files allowed`);
-        return;
+        continue;
       }
 
-      newFiles.push(processFile(file));
-    });
+      if (mode === 'request-attachment') {
+        const uploadedFile = await processFileForRequestAttachment(file);
+        if (uploadedFile) {
+          newFiles.push(uploadedFile);
+        }
+      } else {
+        const error = validateFile(file);
+        if (error) {
+          errors.push(error);
+          continue;
+        }
+        newFiles.push(processFile(file));
+      }
+    }
 
     if (errors.length > 0) {
-      alert(errors.join('\n'));
+      onUploadError?.(errors.join('\n'));
     }
 
     if (newFiles.length > 0) {
       onFilesChange([...files, ...newFiles]);
     }
-  }, [files, maxFiles, validateFile, processFile, onFilesChange]);
+  }, [files, maxFiles, mode, validateFile, processFile, processFileForRequestAttachment, onFilesChange, onUploadError]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -138,6 +257,28 @@ export function DocumentUpload({
     }
     onFilesChange(files.filter(f => f.id !== id));
   }, [files, onFilesChange]);
+
+  // Delete request attachment
+  const deleteRequestAttachment = useCallback(async (file: UploadedFile) => {
+    if (!requestId || !file.preview) return; // preview contains storage path for request attachments
+
+    try {
+      const response = await fetch(`/api/files?requestId=${requestId}&path=${encodeURIComponent(file.preview)}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        onUploadError?.('Failed to delete file');
+        return;
+      }
+
+      // Remove from local state
+      removeFile(file.id);
+    } catch (error) {
+      console.error('Error deleting request attachment:', error);
+      onUploadError?.('Failed to delete file');
+    }
+  }, [requestId, removeFile, onUploadError]);
 
   const getFileIcon = useCallback((file: File) => {
     if (file.type.startsWith('image/')) {
@@ -231,7 +372,7 @@ export function DocumentUpload({
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => removeFile(uploadedFile.id)}
+                      onClick={() => mode === 'request-attachment' ? deleteRequestAttachment(uploadedFile) : removeFile(uploadedFile.id)}
                       className="text-fg-muted hover:text-red-500"
                     >
                       <X className="h-4 w-4" />

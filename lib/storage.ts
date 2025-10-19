@@ -9,7 +9,7 @@ import { ulid } from 'ulid';
  * All access via signed URLs
  */
 
-const BUCKET_NAME = 'documents';
+const BUCKET_NAME = 'files'; // Updated to match the actual bucket name
 const DOWNLOAD_EXPIRES_IN = 3600; // 1 hour
 
 export interface SignedUploadUrlParams {
@@ -18,6 +18,58 @@ export interface SignedUploadUrlParams {
   fileName: string;
 }
 
+export interface SignedUploadUrlForRequestAttachmentParams {
+  requestId: string;
+  fileName: string;
+}
+
+/**
+ * Generate a signed upload URL for a request attachment
+ * Server-only function (uses service role)
+ */
+export async function getSignedUploadUrlForRequestAttachment({ 
+  requestId, 
+  fileName 
+}: SignedUploadUrlForRequestAttachmentParams): Promise<{ 
+  path: string; 
+  signedUrl: string; 
+  token: string;
+} | null> {
+  try {
+    console.log('getSignedUploadUrlForRequestAttachment called with:', { requestId, fileName });
+    
+    const db = await supabaseServer();
+    
+    // Generate unique ID and path: {requestId}/{timestamp}-{random}.{ext}
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 15);
+    const extension = fileName.split('.').pop() || '';
+    const path = `${requestId}/${timestamp}-${random}.${extension}`;
+    
+    console.log('Generated path for request attachment:', path);
+    
+    // Generate signed upload URL
+    const { data, error } = await db.storage
+      .from(BUCKET_NAME)
+      .createSignedUploadUrl(path);
+
+    console.log('Supabase storage response for request attachment:', { data, error });
+
+    if (error) {
+      console.error('Error creating signed upload URL for request attachment:', error);
+      return null;
+    }
+
+    return {
+      path,
+      signedUrl: data.signedUrl,
+      token: data.token,
+    };
+  } catch (error) {
+    console.error('Exception in getSignedUploadUrlForRequestAttachment:', error);
+    return null;
+  }
+}
 /**
  * Generate a signed upload URL for a file
  * Server-only function (uses service role)

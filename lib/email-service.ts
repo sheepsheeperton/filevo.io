@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { getSignedDownloadUrl } from './storage';
 
 if (!process.env.RESEND_API_KEY) {
   throw new Error('RESEND_API_KEY environment variable is required');
@@ -10,27 +11,48 @@ if (!process.env.RESEND_FROM) {
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+export interface EmailAttachment {
+  filename: string;
+  content: Buffer;
+  mime: string;
+}
+
 export interface EmailOptions {
   to: string;
   subject: string;
   html: string;
   text?: string;
+  attachments?: EmailAttachment[];
 }
 
-export async function sendEmail({ to, subject, html, text }: EmailOptions) {
+export async function sendEmail({ to, subject, html, text, attachments }: EmailOptions) {
   try {
     // Check if required environment variables are set
     if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM) {
       throw new Error('Resend configuration is missing. Please set RESEND_API_KEY and RESEND_FROM environment variables.');
     }
 
-    const { data, error } = await resend.emails.send({
+    const emailData: {
+      from: string;
+      to: string;
+      subject: string;
+      html: string;
+      text: string;
+      attachments?: EmailAttachment[];
+    } = {
       from: process.env.RESEND_FROM,
       to,
       subject,
       html,
       text: text || html.replace(/<[^>]*>/g, ''), // Strip HTML tags for text version
-    });
+    };
+
+    // Add attachments if provided
+    if (attachments && attachments.length > 0) {
+      emailData.attachments = attachments;
+    }
+
+    const { data, error } = await resend.emails.send(emailData);
 
     if (error) {
       console.error('Resend email error:', error);
@@ -105,4 +127,99 @@ export async function sendSignUpConfirmationEmail(email: string, confirmationLin
   `;
 
   return sendEmail({ to: email, subject, html });
+}
+
+/**
+ * Fetch request attachments and convert them to email attachments
+ * Returns attachments if total size is under 20MB, otherwise returns signed download links
+ */
+export async function getRequestAttachmentsForEmail(requestId: string): Promise<{
+  attachments: EmailAttachment[];
+  downloadLinks: Array<{ filename: string; url: string; size: number }>;
+}> {
+  try {
+    const { supabaseServer } = await import('./supabase/server');
+    const db = await supabaseServer();
+
+    // Fetch request attachments
+    const { data: files, error } = await db
+      .from('files')
+      .select('file_name, storage_path, file_size, content_type')
+      .eq('request_id', requestId)
+      .eq('origin', 'request_attachment')
+      .eq('tag', 'attachment');
+
+    if (error) {
+      console.error('Error fetching request attachments:', error);
+      return { attachments: [], downloadLinks: [] };
+    }
+
+    if (!files || files.length === 0) {
+      return { attachments: [], downloadLinks: [] };
+    }
+
+    const attachments: EmailAttachment[] = [];
+    const downloadLinks: Array<{ filename: string; url: string; size: number }> = [];
+    const maxTotalSize = 20 * 1024 * 1024; // 20MB
+    let totalSize = 0;
+
+    for (const file of files) {
+      const fileSize = file.file_size || 0;
+      
+      // If adding this file would exceed the limit, add to download links instead
+      if (totalSize + fileSize > maxTotalSize) {
+        const downloadUrl = await getSignedDownloadUrl(file.storage_path);
+        if (downloadUrl) {
+          downloadLinks.push({
+            filename: file.file_name,
+            url: downloadUrl,
+            size: fileSize
+          });
+        }
+        continue;
+      }
+
+      try {
+        // Generate signed download URL
+        const downloadUrl = await getSignedDownloadUrl(file.storage_path);
+        if (!downloadUrl) {
+          console.error('Failed to generate download URL for:', file.file_name);
+          continue;
+        }
+
+        // Fetch file content
+        const response = await fetch(downloadUrl);
+        if (!response.ok) {
+          console.error('Failed to fetch file:', file.file_name);
+          continue;
+        }
+
+        const content = Buffer.from(await response.arrayBuffer());
+        
+        attachments.push({
+          filename: file.file_name,
+          content,
+          mime: file.content_type || 'application/octet-stream'
+        });
+
+        totalSize += fileSize;
+      } catch (error) {
+        console.error('Error processing attachment:', file.file_name, error);
+        // Fallback to download link
+        const downloadUrl = await getSignedDownloadUrl(file.storage_path);
+        if (downloadUrl) {
+          downloadLinks.push({
+            filename: file.file_name,
+            url: downloadUrl,
+            size: fileSize
+          });
+        }
+      }
+    }
+
+    return { attachments, downloadLinks };
+  } catch (error) {
+    console.error('Error in getRequestAttachmentsForEmail:', error);
+    return { attachments: [], downloadLinks: [] };
+  }
 }

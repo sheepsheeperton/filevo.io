@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 interface KpiCardProps {
   title: string;
@@ -9,6 +10,8 @@ interface KpiCardProps {
   color?: 'red' | 'orange' | 'green' | 'blue' | 'teal' | 'amber' | 'violet' | 'gray';
   icon?: ReactNode;
   className?: string;
+  href?: string;
+  onClick?: () => void;
 }
 
 export function KpiCard({ 
@@ -18,7 +21,9 @@ export function KpiCard({
   helperText, 
   color = 'gray',
   icon,
-  className 
+  className,
+  href,
+  onClick
 }: KpiCardProps) {
   const colorClasses = {
     red: 'text-red-500',
@@ -42,8 +47,12 @@ export function KpiCard({
     gray: 'bg-gray-500'
   };
 
-  return (
-    <div className={cn("rounded-2xl bg-surface border border-border p-6", className)}>
+  const cardContent = (
+    <div className={cn(
+      "rounded-2xl bg-surface border border-border p-6",
+      (href || onClick) && "cursor-pointer hover:bg-elev transition-colors",
+      className
+    )}>
       <div className="flex items-center gap-2 mb-2">
         <div className={cn("w-2 h-2 rounded-full", dotColorClasses[color])}></div>
         <div className="text-sm text-fg-subtle">{title}</div>
@@ -64,4 +73,22 @@ export function KpiCard({
       )}
     </div>
   );
+
+  if (href) {
+    return <Link href={href}>{cardContent}</Link>;
+  }
+
+  if (onClick) {
+    return (
+      <div onClick={onClick} role="button" tabIndex={0} onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          onClick();
+        }
+      }}>
+        {cardContent}
+      </div>
+    );
+  }
+
+  return cardContent;
 }

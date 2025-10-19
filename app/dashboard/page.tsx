@@ -13,7 +13,8 @@ export default async function DashboardPage() {
     .select('id, name, address, created_at')
     .order('created_at', { ascending: false });
 
-  // Get all requests with detailed information
+  // Only get requests from existing properties
+  const propertyIds = properties?.map(p => p.id) || [];
   const { data: requests } = await db
     .from('requests')
     .select(`
@@ -25,12 +26,23 @@ export default async function DashboardPage() {
       created_at,
       request_items(id, status, tag)
     `)
+    .in('property_id', propertyIds) // Only requests from existing properties
     .order('created_at', { ascending: false });
 
-  // Get all files for time saved calculation
+  // Get files only from existing requests
+  const requestIds = requests?.map(r => r.id) || [];
   const { data: allFiles } = await db
     .from('files')
-    .select('id, uploaded_at');
+    .select(`
+      id, 
+      uploaded_at,
+      request_item_id,
+      request_items!inner(
+        request_id,
+        requests!inner(id)
+      )
+    `)
+    .in('request_items.requests.id', requestIds);
 
   return (
     <AppShell>

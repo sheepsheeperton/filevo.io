@@ -121,6 +121,7 @@ export function DashboardClient({ properties, requests, allFiles }: DashboardCli
           description={overdueRequests === 0 ? 'All requests on track' : `${overdueRequests} ${overdueRequests === 1 ? 'request' : 'requests'} past due`}
           helperText="Requests past their due date with pending documents"
           color="red"
+          href="/app/properties"
         />
 
         <KpiCard
@@ -129,6 +130,7 @@ export function DashboardClient({ properties, requests, allFiles }: DashboardCli
           description={upcomingDeadlines === 0 ? 'No deadlines this week' : 'Due within 5 days'}
           helperText="Requests with deadlines approaching soon"
           color="orange"
+          href="/app/properties"
         />
 
         <KpiCard
@@ -137,6 +139,7 @@ export function DashboardClient({ properties, requests, allFiles }: DashboardCli
           description={pendingDocuments === 0 ? 'All documents received' : `${pendingDocuments} ${pendingDocuments === 1 ? 'document' : 'documents'} outstanding`}
           helperText="Outstanding required items across requests"
           color="orange"
+          href="/app/properties"
         />
 
         <KpiCard
@@ -145,6 +148,7 @@ export function DashboardClient({ properties, requests, allFiles }: DashboardCli
           description={completedRequests === 0 ? 'No completed requests yet' : `${completedRequests} ${completedRequests === 1 ? 'request' : 'requests'} finished`}
           helperText="Document requests where all items have been received"
           color="green"
+          href="/app/properties"
         />
 
         <KpiCard
@@ -153,6 +157,7 @@ export function DashboardClient({ properties, requests, allFiles }: DashboardCli
           description={inProgressRequests === 0 ? 'No active requests' : `${inProgressRequests} ${inProgressRequests === 1 ? 'request' : 'requests'} active`}
           helperText="Active requests with at least one pending item"
           color="blue"
+          href="/app/properties"
         />
 
         <KpiCard
@@ -161,6 +166,7 @@ export function DashboardClient({ properties, requests, allFiles }: DashboardCli
           description={recentUploads.length === 0 ? 'No uploads this week' : 'In the last 7 days'}
           helperText="Files uploaded in the past week"
           color="green"
+          href="/app/activity"
         />
       </div>
 

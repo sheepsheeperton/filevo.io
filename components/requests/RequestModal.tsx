@@ -105,6 +105,11 @@ export function RequestModal({ onClose, presetItems = [], properties }: RequestM
     setError(null);
 
     try {
+      console.log('Creating request with uploaded files:', {
+        fileCount: uploadedFiles.length,
+        files: uploadedFiles.map(f => ({ name: f.file.name, size: f.file.size, type: f.file.type }))
+      });
+
       const result = await createRequest({
         propertyId: selectedPropertyId,
         title: title.trim(),
@@ -116,13 +121,16 @@ export function RequestModal({ onClose, presetItems = [], properties }: RequestM
         notification
       });
 
+      console.log('Request creation result:', result);
+
       if (result.success && result.data) {
         setCreatedRequest(result.data);
         setShowSharePanel(true);
       } else {
         setError(result.error || 'Failed to create request');
       }
-    } catch {
+    } catch (error) {
+      console.error('Request creation error:', error);
       setError('An unexpected error occurred');
     } finally {
       setIsLoading(false);

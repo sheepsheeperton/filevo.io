@@ -481,7 +481,14 @@ export async function createRequest(data: {
       data: { 
         ...request, 
         request_items: items,
-        notification_sent: notificationSent 
+        notification_sent: notificationSent,
+        debug: {
+          uploadedFileCount: data.uploadedFiles?.length || 0,
+          uploadedFileIds: uploadedFileIds,
+          notificationEnabled: data.notification?.notifyNow || false,
+          messagingEnabled: process.env.MESSAGING_SEND_ENABLED === 'true',
+          fileAttachmentsPrepared: 'N/A'
+        }
       } 
     };
   } catch (error) {

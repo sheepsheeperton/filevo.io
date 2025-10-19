@@ -48,7 +48,7 @@ export function ActivityClient({ activities, requests }: ActivityClientProps) {
 
   // Initialize category from URL params
   useEffect(() => {
-    const cat = searchParams.get('cat') as CategoryKey;
+    const cat = searchParams?.get('cat') as CategoryKey;
     if (cat && ['all', 'onboarding', 'maintenance', 'audit'].includes(cat)) {
       setSelectedCategory(cat);
     }
@@ -106,7 +106,7 @@ export function ActivityClient({ activities, requests }: ActivityClientProps) {
 
   const handleCategoryChange = (category: CategoryKey) => {
     setSelectedCategory(category);
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams || '');
     if (category === 'all') {
       params.delete('cat');
     } else {
@@ -257,7 +257,7 @@ export function ActivityClient({ activities, requests }: ActivityClientProps) {
                         <span className="font-medium capitalize">{activity.action}</span>{' '}
                         <span className="text-fg-muted">{activity.entity}</span>
                         {activity.requestTitle && (
-                          <span className="text-fg-muted ml-1">"{activity.requestTitle}"</span>
+                          <span className="text-fg-muted ml-1">&ldquo;{activity.requestTitle}&rdquo;</span>
                         )}
                       </p>
                       {activity.category && activity.category !== 'all' && (

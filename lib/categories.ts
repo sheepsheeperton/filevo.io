@@ -3,14 +3,14 @@ export type CategoryKey = 'all' | 'onboarding' | 'maintenance' | 'audit';
 export interface RequestLike {
   id: string;
   title: string;
-  description?: string;
+  description?: string | null;
   request_items?: Array<{
     id: string;
     tag: string;
     status: string;
   }>;
-  property_id?: string;
-  due_date?: string;
+  property_id?: string | null;
+  due_date?: string | null;
   created_at?: string;
 }
 

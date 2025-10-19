@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CategoryChips } from '@/components/ui/CategoryChips';
 import { KpiCard } from '@/components/ui/KpiCard';
-import { CategoryKey, inferCategoryFromRequest, getCategoryColor } from '@/lib/categories';
+import { CategoryKey, inferCategoryFromRequest } from '@/lib/categories';
 import Link from 'next/link';
 
 interface Property {
@@ -50,7 +50,7 @@ export function DashboardClient({ properties, requests, allFiles }: DashboardCli
 
   // Initialize category from URL params
   useEffect(() => {
-    const cat = searchParams.get('cat') as CategoryKey;
+    const cat = searchParams?.get('cat') as CategoryKey;
     if (cat && ['all', 'onboarding', 'maintenance', 'audit'].includes(cat)) {
       setSelectedCategory(cat);
     }
@@ -121,7 +121,7 @@ export function DashboardClient({ properties, requests, allFiles }: DashboardCli
 
   const handleCategoryChange = (category: CategoryKey) => {
     setSelectedCategory(category);
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams || '');
     if (category === 'all') {
       params.delete('cat');
     } else {

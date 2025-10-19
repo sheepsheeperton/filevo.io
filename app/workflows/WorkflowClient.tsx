@@ -5,15 +5,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CategoryChips } from '@/components/ui/CategoryChips';
 import { KpiCard } from '@/components/ui/KpiCard';
-import { CategoryKey, inferCategoryFromRequest, getCategoryLabel, getCategoryDescription } from '@/lib/categories';
+import { CategoryKey, inferCategoryFromRequest, getCategoryLabel } from '@/lib/categories';
 import Link from 'next/link';
-
-interface Property {
-  id: string;
-  name: string;
-  address: string | null;
-  created_at: string;
-}
 
 interface RequestItem {
   id: string;
@@ -38,12 +31,11 @@ interface File {
 
 interface WorkflowClientProps {
   category: CategoryKey;
-  properties: Property[];
   requests: Request[];
   allFiles: File[];
 }
 
-export function WorkflowClient({ category, properties, requests, allFiles }: WorkflowClientProps) {
+export function WorkflowClient({ category, requests, allFiles }: WorkflowClientProps) {
   // Filter requests by the fixed category
   const filteredRequests = useMemo(() => {
     return requests.filter(r => inferCategoryFromRequest(r) === category);

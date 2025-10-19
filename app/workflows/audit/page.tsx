@@ -1,17 +1,11 @@
 import { supabaseServer } from '@/lib/supabase/server';
 import { requireUser } from '@/lib/auth';
 import AppShell from '@/components/layout/AppShell';
-import { WorkflowClient } from './WorkflowClient';
+import { WorkflowClient } from '../WorkflowClient';
 
 export default async function AuditPage() {
   await requireUser();
   const db = await supabaseServer();
-
-  // Get all properties
-  const { data: properties } = await db
-    .from('properties')
-    .select('id, name, address, created_at')
-    .order('created_at', { ascending: false });
 
   // Get all requests with detailed information
   const { data: requests } = await db
@@ -36,7 +30,6 @@ export default async function AuditPage() {
     <AppShell>
       <WorkflowClient 
         category="audit"
-        properties={properties || []}
         requests={requests || []}
         allFiles={allFiles || []}
       />

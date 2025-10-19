@@ -316,6 +316,7 @@ export async function createRequest(data: {
           }
 
           // Create file record in database
+          console.log('Creating file record with request_id:', request.id);
           const { data: fileRecord, error: fileError } = await db
             .from('files')
             .insert({
@@ -331,8 +332,11 @@ export async function createRequest(data: {
             .single();
 
           if (fileError) {
-            console.error('Error creating file record:', fileError);
+            console.error('File record creation error:', fileError);
+            console.error('Error details:', JSON.stringify(fileError, null, 2));
             continue; // Continue with other files
+          } else {
+            console.log('File record created successfully:', fileRecord);
           }
 
           uploadedFileIds.push(fileRecord.id);

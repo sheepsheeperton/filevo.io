@@ -1,14 +1,9 @@
 import { supabaseServer } from '@/lib/supabase/server';
 import { requireUser } from '@/lib/auth';
 import AppShell from '@/components/layout/AppShell';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CategoryChips } from '@/components/ui/CategoryChips';
-import { KpiCard } from '@/components/ui/KpiCard';
-import { DashboardClient } from './DashboardClient';
-import Link from 'next/link';
+import { WorkflowClient } from './WorkflowClient';
 
-export default async function DashboardPage() {
+export default async function OnboardingRenewalsPage() {
   await requireUser();
   const db = await supabaseServer();
 
@@ -39,7 +34,8 @@ export default async function DashboardPage() {
 
   return (
     <AppShell>
-      <DashboardClient 
+      <WorkflowClient 
+        category="onboarding"
         properties={properties || []}
         requests={requests || []}
         allFiles={allFiles || []}
@@ -47,4 +43,3 @@ export default async function DashboardPage() {
     </AppShell>
   );
 }
-

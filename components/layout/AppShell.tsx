@@ -7,11 +7,22 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { LogoutButton } from "@/components/logout-button";
 import { Button } from "@/components/ui/button";
 import clsx from "clsx";
+import { 
+  LayoutDashboard, 
+  UserPlus, 
+  Wrench, 
+  FolderArchive, 
+  Building2, 
+  Activity 
+} from "lucide-react";
 
 const nav = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/app/properties", label: "Properties" },
-  { href: "/app/activity", label: "Activity" },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/workflows/onboarding-renewals", label: "Onboarding & Renewals", icon: UserPlus },
+  { href: "/workflows/maintenance", label: "Maintenance & Vendor Receipts", icon: Wrench },
+  { href: "/workflows/audit", label: "Ownership / Accounting / Audit", icon: FolderArchive },
+  { href: "/app/properties", label: "Properties", icon: Building2 },
+  { href: "/app/activity", label: "Activity", icon: Activity },
 ];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -67,17 +78,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <ul className="space-y-1">
             {nav.map((n) => {
               const active = pathname?.startsWith(n.href);
+              const IconComponent = n.icon;
               return (
                 <li key={n.href}>
                   <Link
                     href={n.href}
                     onClick={() => setSidebarOpen(false)} // Close sidebar on mobile when navigating
                     className={clsx(
-                      "block rounded-xl px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:hsl(var(--ring))]",
+                      "flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:hsl(var(--ring))]",
                       active ? "bg-elev text-fg" : "text-fg-muted hover:bg-elev"
                     )}
                   >
-                    {n.label}
+                    <IconComponent className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">{n.label}</span>
                   </Link>
                 </li>
               );

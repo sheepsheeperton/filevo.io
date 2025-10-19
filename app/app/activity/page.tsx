@@ -1,7 +1,7 @@
 import { requireUser } from '@/lib/auth';
 import { supabaseServer } from '@/lib/supabase/server';
 import AppShell from '@/components/layout/AppShell';
-import { ActivityList } from '@/components/activity/ActivityList';
+import { ActivityClient } from './ActivityClient';
 
 export default async function ActivityPage() {
   await requireUser();
@@ -13,16 +13,26 @@ export default async function ActivityPage() {
     .order('created_at', { ascending: false })
     .limit(100);
 
+  // Get requests for category inference
+  const { data: requests } = await db
+    .from('requests')
+    .select(`
+      id, 
+      title, 
+      description,
+      due_date, 
+      property_id, 
+      created_at,
+      request_items(id, status, tag)
+    `)
+    .order('created_at', { ascending: false });
+
   return (
     <AppShell>
-      <div className="max-w-6xl space-y-8">
-        <div>
-          <h1 className="text-3xl font-semibold">Activity Log</h1>
-          <p className="text-fg-muted mt-2">Complete timeline of property changes, document uploads, and request updates</p>
-        </div>
-
-        <ActivityList activities={activities || []} />
-      </div>
+      <ActivityClient 
+        activities={activities || []}
+        requests={requests || []}
+      />
     </AppShell>
   );
 }

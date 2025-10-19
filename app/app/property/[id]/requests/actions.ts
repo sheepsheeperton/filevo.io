@@ -16,7 +16,8 @@ async function simulateNotification(data: {
   request: { id: string; title: string; request_items: Array<{ tag: string; upload_token: string }> };
   items: string[];
   uploadedFiles?: Array<{ name: string; size: number; type: string }>;
-}, db: Awaited<ReturnType<typeof supabaseServer>>) {
+  attachments?: Array<{ filename: string; content: string; type: string }>;
+}) {
   try {
     console.log('Sending notification:', {
       recipient: data.recipient,
@@ -38,48 +39,8 @@ async function simulateNotification(data: {
     if (data.notification.preferredChannel === 'email' || data.notification.preferredChannel === 'both') {
       const emailContent = generateEmailContent(data.request.title, data.items, uploadLinks, data.uploadedFiles);
       
-      // Prepare attachments if uploaded files exist
-      const attachments: Array<{ filename: string; content: string; type: string }> = [];
-      if (data.uploadedFiles && data.uploadedFiles.length > 0) {
-        try {
-          // Get uploaded file records from database
-          const { data: fileRecords } = await db
-            .from('files')
-            .select('file_name, file_path, file_type')
-            .eq('request_id', data.request.id)
-            .in('file_name', data.uploadedFiles.map(f => f.name));
-
-          // Download files from Supabase Storage and convert to base64
-          for (const fileRecord of fileRecords || []) {
-            try {
-              const { data: fileData, error: downloadError } = await db.storage
-                .from('files')
-                .download(fileRecord.file_path);
-
-              if (downloadError) {
-                console.error('Error downloading file for attachment:', downloadError);
-                continue;
-              }
-
-              // Convert blob to base64
-              const arrayBuffer = await fileData.arrayBuffer();
-              const base64Content = Buffer.from(arrayBuffer).toString('base64');
-
-              attachments.push({
-                filename: fileRecord.file_name,
-                content: base64Content,
-                type: fileRecord.file_type
-              });
-            } catch (error) {
-              console.error('Error processing file attachment:', error);
-              continue;
-            }
-          }
-        } catch (error) {
-          console.error('Error preparing attachments:', error);
-          // Continue without attachments if there's an error
-        }
-      }
+      // Use prepared attachments if available
+      const attachments = data.attachments || [];
       
       console.log('Attempting to send email via Resend:', {
         from: process.env.RESEND_FROM_EMAIL || 'noreply@filevo.io',
@@ -402,7 +363,54 @@ export async function createRequest(data: {
         });
         
         if (messagingEnabled) {
-          // Simulate sending notifications
+          // Prepare file attachments from uploaded files
+          const fileAttachments: Array<{ filename: string; content: string; type: string }> = [];
+          if (data.uploadedFiles && data.uploadedFiles.length > 0) {
+            try {
+              // Get the file records we just created
+              const { data: fileRecords } = await db
+                .from('files')
+                .select('file_name, file_path, file_type')
+                .eq('request_id', request.id)
+                .in('file_name', data.uploadedFiles.map(f => f.name));
+
+              console.log('Found file records for attachments:', fileRecords?.length || 0);
+
+              // Download files from Supabase Storage and convert to base64
+              for (const fileRecord of fileRecords || []) {
+                try {
+                  const { data: fileData, error: downloadError } = await db.storage
+                    .from('files')
+                    .download(fileRecord.file_path);
+
+                  if (downloadError) {
+                    console.error('Error downloading file for attachment:', downloadError);
+                    continue;
+                  }
+
+                  // Convert blob to base64
+                  const arrayBuffer = await fileData.arrayBuffer();
+                  const base64Content = Buffer.from(arrayBuffer).toString('base64');
+
+                  fileAttachments.push({
+                    filename: fileRecord.file_name,
+                    content: base64Content,
+                    type: fileRecord.file_type
+                  });
+
+                  console.log(`Prepared attachment: ${fileRecord.file_name} (${Math.round(arrayBuffer.byteLength / 1024)}KB)`);
+                } catch (error) {
+                  console.error('Error processing file attachment:', error);
+                  continue;
+                }
+              }
+            } catch (error) {
+              console.error('Error preparing attachments:', error);
+              // Continue without attachments if there's an error
+            }
+          }
+
+          // Simulate sending notifications with prepared attachments
           const notificationResult = await simulateNotification({
             recipient: data.recipient,
             notification: data.notification,
@@ -412,8 +420,9 @@ export async function createRequest(data: {
               name: file.name,
               size: file.size,
               type: file.type
-            }))
-          }, db);
+            })),
+            attachments: fileAttachments
+          });
 
           if (notificationResult.success) {
             // Update notified_at timestamp
@@ -543,7 +552,7 @@ export async function resendNotification(data: {
       notification: data.notification,
       request: request,
       items: request.request_items.map((item: { tag: string; upload_token: string }) => item.tag),
-    }, db);
+    });
 
     if (notificationResult.success) {
       // Update notified_at timestamp

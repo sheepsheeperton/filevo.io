@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,8 +9,34 @@ import { Textarea } from '@/components/ui/textarea';
 import { DocumentUpload } from '@/components/ui/DocumentUpload';
 import { createRequest } from '@/app/app/property/[id]/requests/actions';
 import { SharePanel } from './SharePanel';
-import { AIComposeModal } from './AIComposeModal';
 import { X, Sparkles } from 'lucide-react';
+
+// Lazy load AI Compose modal
+const AIComposeModal = lazy(() => import('./AIComposeModal').then(module => ({ default: module.AIComposeModal })));
+
+// Performance instrumentation
+const performanceMark = (name: string) => {
+  if (typeof window !== 'undefined' && window.performance) {
+    window.performance.mark(name);
+    console.log(`🔍 Performance: ${name}`);
+  }
+};
+
+const performanceMeasure = (name: string, startMark: string, endMark?: string) => {
+  if (typeof window !== 'undefined' && window.performance) {
+    try {
+      if (endMark) {
+        window.performance.measure(name, startMark, endMark);
+      } else {
+        window.performance.measure(name, startMark);
+      }
+      const measure = window.performance.getEntriesByName(name, 'measure')[0];
+      console.log(`⏱️ Performance: ${name} took ${measure.duration.toFixed(2)}ms`);
+    } catch {
+      console.log(`⏱️ Performance: ${name} - measurement failed`);
+    }
+  }
+};
 
 interface RequestItem {
   tag: string;
@@ -63,6 +89,31 @@ export function UnifiedRequestModal({
   selectedPropertyId: propSelectedPropertyId,
   showPresetSelector = false 
 }: RequestModalProps) {
+  // Performance tracking
+  useEffect(() => {
+    performanceMark('modal-mount-start');
+    console.log('🚀 Modal mounting - tracking performance');
+    
+    // Monitor network activity
+    const originalFetch = window.fetch;
+    let networkCalls = 0;
+    
+    window.fetch = function(...args) {
+      networkCalls++;
+      console.log(`🌐 Network call #${networkCalls}:`, args[0]);
+      return originalFetch.apply(this, args);
+    };
+    
+    return () => {
+      performanceMark('modal-unmount');
+      console.log('🏁 Modal unmounting');
+      console.log(`📊 Total network calls during modal session: ${networkCalls}`);
+      
+      // Restore original fetch
+      window.fetch = originalFetch;
+    };
+  }, []);
+
   const [selectedPropertyId, setSelectedPropertyId] = useState(propSelectedPropertyId || '');
   const [selectedPreset, setSelectedPreset] = useState<'onboarding' | 'renewal'>('onboarding');
   const [title, setTitle] = useState('');
@@ -82,8 +133,26 @@ export function UnifiedRequestModal({
     request_items: Array<{ id: string; tag: string; upload_token: string }>;
   } | null>(null);
 
-  // Initialize with preset items or selected preset
+  // Memoize preset data to prevent recreation
+  const presetData = useMemo(() => ({
+    onboarding: PRESET_ONBOARDING,
+    renewal: PRESET_RENEWAL
+  }), []);
+
+  // Optimize preset application with useCallback
+  const applyPreset = useCallback((preset: typeof PRESET_ONBOARDING) => {
+    performanceMark('apply-preset-start');
+    setTitle(preset.title);
+    setDescription(preset.description);
+    setItems(preset.items.map((item, index) => ({ tag: item, id: `preset-${index}` })));
+    performanceMark('apply-preset-end');
+    performanceMeasure('apply-preset', 'apply-preset-start', 'apply-preset-end');
+  }, []);
+
+  // Initialize with preset items or selected preset - OPTIMIZED
   useEffect(() => {
+    performanceMark('init-preset-start');
+    
     if (presetItems.length > 0) {
       // Legacy preset items from old buttons
       setItems(presetItems.map((item, index) => ({ tag: item, id: `preset-${index}` })));
@@ -93,39 +162,38 @@ export function UnifiedRequestModal({
         : 'Please provide the following documents for your lease renewal.');
     } else if (showPresetSelector) {
       // New preset selector - start with onboarding preset
-      applyPreset(PRESET_ONBOARDING);
+      applyPreset(presetData.onboarding);
     } else {
       // Empty form
       setItems([{ tag: '', id: Date.now().toString() }]);
     }
-  }, [presetItems, showPresetSelector]);
+    
+    performanceMark('init-preset-end');
+    performanceMeasure('init-preset', 'init-preset-start', 'init-preset-end');
+  }, [presetItems, showPresetSelector, applyPreset, presetData.onboarding]);
 
-  const applyPreset = (preset: typeof PRESET_ONBOARDING) => {
-    setTitle(preset.title);
-    setDescription(preset.description);
-    setItems(preset.items.map((item, index) => ({ tag: item, id: `preset-${index}` })));
-  };
-
-  const handlePresetChange = (preset: 'onboarding' | 'renewal') => {
+  const handlePresetChange = useCallback((preset: 'onboarding' | 'renewal') => {
     setSelectedPreset(preset);
-    const presetData = preset === 'onboarding' ? PRESET_ONBOARDING : PRESET_RENEWAL;
-    applyPreset(presetData);
-  };
+    applyPreset(presetData[preset]);
+  }, [applyPreset, presetData]);
 
-  const addItem = () => {
-    setItems([...items, { tag: '', id: Date.now().toString() }]);
-  };
+  const addItem = useCallback(() => {
+    setItems(prev => [...prev, { tag: '', id: Date.now().toString() }]);
+  }, []);
 
-  const removeItem = (id: string) => {
-    setItems(items.filter(item => item.id !== id));
-  };
+  const removeItem = useCallback((id: string) => {
+    setItems(prev => prev.filter(item => item.id !== id));
+  }, []);
 
-  const updateItem = (id: string, tag: string) => {
-    setItems(items.map(item => item.id === id ? { ...item, tag } : item));
-  };
+  const updateItem = useCallback((id: string, tag: string) => {
+    setItems(prev => prev.map(item => item.id === id ? { ...item, tag } : item));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    performanceMark('form-submit-start');
+    console.log('📝 Form submission started');
     
     if (!selectedPropertyId) {
       setError('Please select a property');
@@ -168,6 +236,8 @@ export function UnifiedRequestModal({
       if (result.success && result.data) {
         setCreatedRequest(result.data);
         setShowSharePanel(true);
+        performanceMark('form-submit-success');
+        performanceMeasure('form-submit', 'form-submit-start', 'form-submit-success');
       } else {
         setError(result.error || 'Failed to create request');
       }
@@ -179,14 +249,23 @@ export function UnifiedRequestModal({
     }
   };
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
+    performanceMark('modal-close');
+    console.log('🚪 Modal closing');
     onClose();
-  };
+  }, [onClose]);
 
-  const handleAIInsert = (text: string) => {
+  const handleAIInsert = useCallback((text: string) => {
     setDescription(text);
     setShowAICompose(false);
-  };
+  }, []);
+
+  // Lazy load AI Compose modal only when needed
+  const handleAIOpen = useCallback(() => {
+    performanceMark('ai-compose-open');
+    console.log('🤖 AI Compose opening');
+    setShowAICompose(true);
+  }, []);
 
   if (showSharePanel && createdRequest) {
     return (
@@ -212,12 +291,25 @@ export function UnifiedRequestModal({
 
   if (showAICompose) {
     return (
-      <AIComposeModal
-        onClose={() => setShowAICompose(false)}
-        onInsert={handleAIInsert}
-        requestTitle={title || 'Document Request'}
-        requestItems={items.filter(item => item.tag.trim()).map(item => item.tag.trim())}
-      />
+      <Suspense fallback={
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-2xl">
+            <CardContent className="py-16">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand mx-auto mb-4"></div>
+                <p className="text-fg-muted">Loading AI Compose...</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      }>
+        <AIComposeModal
+          onClose={() => setShowAICompose(false)}
+          onInsert={handleAIInsert}
+          requestTitle={title || 'Document Request'}
+          requestItems={items.filter(item => item.tag.trim()).map(item => item.tag.trim())}
+        />
+      </Suspense>
     );
   }
 
@@ -296,7 +388,7 @@ export function UnifiedRequestModal({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowAICompose(true)}
+                  onClick={handleAIOpen}
                   className="text-brand hover:text-brand-600"
                 >
                   <Sparkles className="h-4 w-4 mr-1" />

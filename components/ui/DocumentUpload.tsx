@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Upload, X, FileText, Image, File } from 'lucide-react';
@@ -20,7 +20,8 @@ interface DocumentUploadProps {
   className?: string;
 }
 
-const ACCEPTED_TYPES = [
+// Memoize accepted types to prevent recreation
+const ACCEPTED_TYPES: string[] = [
   'application/pdf',
   'image/jpeg',
   'image/png',
@@ -45,22 +46,53 @@ export function DocumentUpload({
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (selectedFiles: FileList | null) => {
+  // Memoize file validation to prevent recreation
+  const validateFile = useCallback((file: File): string | null => {
+    if (file.size > MAX_FILE_SIZE) {
+      return `${file.name} is too large (max 10MB)`;
+    }
+    if (!acceptedTypes.includes(file.type)) {
+      return `${file.name} is not a supported file type`;
+    }
+    return null;
+  }, [acceptedTypes]);
+
+  // Optimize file processing with debounced preview generation
+  const processFile = useCallback((file: File): UploadedFile => {
+    const uploadedFile: UploadedFile = {
+      id: `${Date.now()}-${Math.random()}`,
+      file,
+      // Only create preview for images and defer it
+      preview: file.type.startsWith('image/') ? undefined : undefined
+    };
+
+    // Create preview asynchronously to avoid blocking
+    if (file.type.startsWith('image/')) {
+      setTimeout(() => {
+        try {
+          const preview = URL.createObjectURL(file);
+          uploadedFile.preview = preview;
+          // Trigger re-render with new preview
+          onFilesChange([...files]);
+        } catch (error) {
+          console.warn('Failed to create image preview:', error);
+        }
+      }, 0);
+    }
+
+    return uploadedFile;
+  }, [files, onFilesChange]);
+
+  const handleFileSelect = useCallback((selectedFiles: FileList | null) => {
     if (!selectedFiles) return;
 
     const newFiles: UploadedFile[] = [];
     const errors: string[] = [];
 
     Array.from(selectedFiles).forEach((file) => {
-      // Check file size
-      if (file.size > MAX_FILE_SIZE) {
-        errors.push(`${file.name} is too large (max 10MB)`);
-        return;
-      }
-
-      // Check file type
-      if (!acceptedTypes.includes(file.type)) {
-        errors.push(`${file.name} is not a supported file type`);
+      const error = validateFile(file);
+      if (error) {
+        errors.push(error);
         return;
       }
 
@@ -70,13 +102,7 @@ export function DocumentUpload({
         return;
       }
 
-      const uploadedFile: UploadedFile = {
-        id: `${Date.now()}-${Math.random()}`,
-        file,
-        preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined
-      };
-
-      newFiles.push(uploadedFile);
+      newFiles.push(processFile(file));
     });
 
     if (errors.length > 0) {
@@ -86,33 +112,33 @@ export function DocumentUpload({
     if (newFiles.length > 0) {
       onFilesChange([...files, ...newFiles]);
     }
-  };
+  }, [files, maxFiles, validateFile, processFile, onFilesChange]);
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
     handleFileSelect(e.dataTransfer.files);
-  };
+  }, [handleFileSelect]);
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(true);
-  };
+  }, []);
 
-  const handleDragLeave = (e: React.DragEvent) => {
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
-  };
+  }, []);
 
-  const removeFile = (id: string) => {
+  const removeFile = useCallback((id: string) => {
     const fileToRemove = files.find(f => f.id === id);
     if (fileToRemove?.preview) {
       URL.revokeObjectURL(fileToRemove.preview);
     }
     onFilesChange(files.filter(f => f.id !== id));
-  };
+  }, [files, onFilesChange]);
 
-  const getFileIcon = (file: File) => {
+  const getFileIcon = useCallback((file: File) => {
     if (file.type.startsWith('image/')) {
       return <Image className="h-4 w-4" />;
     } else if (file.type === 'application/pdf') {
@@ -120,15 +146,15 @@ export function DocumentUpload({
     } else {
       return <File className="h-4 w-4" />;
     }
-  };
+  }, []);
 
-  const formatFileSize = (bytes: number) => {
+  const formatFileSize = useCallback((bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
+  }, []);
 
   return (
     <div className={cn("space-y-4", className)}>

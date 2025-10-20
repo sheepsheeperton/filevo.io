@@ -144,7 +144,7 @@ export async function getRequestAttachmentsForEmail(requestId: string): Promise<
     // Fetch request attachments
     const { data: files, error } = await db
       .from('files')
-      .select('file_name, storage_path, file_size, content_type')
+      .select('file_name, file_path, file_size, content_type')
       .eq('request_id', requestId)
       .eq('origin', 'request_attachment')
       .eq('tag', 'attachment');
@@ -168,7 +168,7 @@ export async function getRequestAttachmentsForEmail(requestId: string): Promise<
       
       // If adding this file would exceed the limit, add to download links instead
       if (totalSize + fileSize > maxTotalSize) {
-        const downloadUrl = await getSignedDownloadUrl(file.storage_path);
+        const downloadUrl = await getSignedDownloadUrl(file.file_path);
         if (downloadUrl) {
           downloadLinks.push({
             filename: file.file_name,
@@ -181,7 +181,7 @@ export async function getRequestAttachmentsForEmail(requestId: string): Promise<
 
       try {
         // Generate signed download URL
-        const downloadUrl = await getSignedDownloadUrl(file.storage_path);
+        const downloadUrl = await getSignedDownloadUrl(file.file_path);
         if (!downloadUrl) {
           console.error('Failed to generate download URL for:', file.file_name);
           continue;
@@ -206,7 +206,7 @@ export async function getRequestAttachmentsForEmail(requestId: string): Promise<
       } catch (error) {
         console.error('Error processing attachment:', file.file_name, error);
         // Fallback to download link
-        const downloadUrl = await getSignedDownloadUrl(file.storage_path);
+        const downloadUrl = await getSignedDownloadUrl(file.file_path);
         if (downloadUrl) {
           downloadLinks.push({
             filename: file.file_name,

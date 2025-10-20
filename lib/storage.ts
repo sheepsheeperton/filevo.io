@@ -130,6 +130,12 @@ export async function getSignedDownloadUrl(
   try {
     console.log('getSignedDownloadUrl called with path:', storagePath);
     
+    // Check if path is valid
+    if (!storagePath || typeof storagePath !== 'string') {
+      console.error('Invalid storage path provided:', storagePath);
+      return null;
+    }
+    
     const db = await supabaseServer();
     
     const { data, error } = await db.storage

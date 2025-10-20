@@ -42,18 +42,15 @@ Filevo is a SaaS platform for property managers to collect and organize required
     /export             # ZIP export endpoint
     /files
       /download         # Secure file download
+      /route.ts         # DELETE endpoint for file deletion
     /health             # Health check
     /hello              # Hello world endpoint
     /jobs
       /reminders        # Cron job for email reminders
     /ok                 # OK endpoint
     /ping               # Ping endpoint
-    /requests
-      /[requestId]
-        /archive        # Archive request endpoint
-        /delete         # Delete request endpoint
-        /restore        # Restore request endpoint
     /test               # Test endpoint
+    /test-api           # API testing endpoint
     /test-email         # Email testing
     /test-forgot-password # Password reset testing
     /test-magic-link    # Magic link testing
@@ -62,8 +59,9 @@ Filevo is a SaaS platform for property managers to collect and organize required
     /test-simple        # Simple testing
     /ultra-simple       # Ultra simple testing
     /upload             # File upload handler
-      /get-url          # Generate signed upload URLs
-      /record           # Record uploaded files
+      /get-url          # Generate signed upload URLs (supports request attachments)
+      /record           # Record uploaded files (supports request attachments)
+      /route.ts         # Main upload handler
   /app                  # Protected app routes
     /dashboard          # Main dashboard with KPIs
     /properties         # Property management (Onboarding & Renewals)
@@ -111,13 +109,10 @@ Filevo is a SaaS platform for property managers to collect and organize required
     /PropertyForm.tsx   # Property creation/edit form
     /PropertyManagement.tsx # Property management interface
   /requests
-    /AIComposeModal.tsx # AI-powered message composition
+    /AIComposeModal.tsx # AI-powered message composition (lazy-loaded)
     /EditRequestModal.tsx # Request editing modal
-    /RequestActions.tsx # Request action buttons (archive/delete)
     /RequestCard.tsx    # Request display card
-    /RequestForm.tsx    # NEW: Minimal performance-optimized form
-    /PropertyRequestForm.tsx # NEW: Property page wrapper
-    /RequestForm.tsx    # Legacy request form (deprecated)
+    /RequestForm.tsx    # Performance-optimized request form with attachments
     /ResendNotificationModal.tsx # Resend notification modal
     /SharePanel.tsx     # Request sharing interface
   /sign-up-form.tsx     # Registration form
@@ -136,6 +131,7 @@ Filevo is a SaaS platform for property managers to collect and organize required
     /button.tsx         # Button component
     /card.tsx           # Card component
     /checkbox.tsx       # Checkbox component
+    /DocumentUpload.tsx # File upload component with drag & drop
     /dropdown-menu.tsx  # Dropdown menu
     /input.tsx          # Input component
     /label.tsx          # Label component
@@ -155,9 +151,9 @@ Filevo is a SaaS platform for property managers to collect and organize required
     /templates          # Email templates
       /request-notification.tsx # Request notification template
       /welcome.tsx      # Welcome email template
-  /email-service.ts     # Enhanced email service
+  /email-service.ts     # Enhanced email service with attachment support
   /email.ts             # Email sending via Resend
-  /storage.ts           # Storage helpers (signed URLs)
+  /storage.ts           # Storage helpers (signed URLs, request attachments)
   /activity.ts          # Activity logging
   /categories.ts        # Category inference and filtering
   /format.ts            # Formatting utilities (currency, dates)
@@ -177,6 +173,12 @@ Filevo is a SaaS platform for property managers to collect and organize required
     /20250115000004_create_storage_bucket.sql # Storage bucket creation
     /20250116000000_add_archived_at_to_requests.sql # Archive functionality
     /20250116000001_add_properties_created_at_index.sql # Performance index
+    /20250116000002_add_request_attachments.sql # Request attachment support
+    /20250116000003_create_files_bucket.sql # Files storage bucket
+    /20250116000004_fix_files_schema.sql # Fix files table schema
+    /20250116000005_fix_files_rls.sql # Fix files RLS policies
+    /20250116000006_emergency_rls_fix.sql # Emergency RLS fix
+    /20250116000007_fix_all_rls.sql # Comprehensive RLS fix
   /seed.sql             # Example data
 ```
 
@@ -187,10 +189,20 @@ profiles (1:N properties via created_by)
   ├─ properties (1:N requests)
   │   ├─ property_users (M:N join with profiles)
   │   └─ requests (1:N request_items)
-  │       ├─ request_items (1:N files)
-  │       │   └─ files (binary data in Storage)
+  │       ├─ request_items (1:N files via item_upload)
+  │       │   └─ files (origin: 'item_upload', tag: 'document')
   │       └─ files (direct request attachments)
+  │           └─ files (origin: 'request_attachment', tag: 'attachment')
   └─ activity_logs
+
+File Attachment System:
+  ├─ files.origin: 'request_attachment' | 'item_upload'
+  ├─ files.tag: 'attachment' | 'document'
+  ├─ files.request_id: Direct link to request (for manager uploads)
+  ├─ files.request_item_id: Link to specific item (for recipient uploads)
+  ├─ files.file_path: Storage path in Supabase Storage
+  ├─ files.file_size: File size in bytes
+  └─ files.content_type: MIME type
 
 Categories (client-side inference):
   ├─ onboarding: Driver's license, lease, insurance
@@ -232,26 +244,28 @@ Archive System:
 - Auth middleware for route protection
 - Handles session validation
 
-## Request Form Architecture (NEW)
+## Request Form Architecture
 
 ### Performance-Optimized Form System
 - **RequestForm.tsx**: Main minimal form component with zero network calls on mount
-- **PropertyRequestForm.tsx**: Wrapper for property page usage
 - **Lazy Loading**: AI Compose and DocumentUpload load only when needed
 - **Memoization**: All callbacks and values memoized to prevent re-renders
 - **Inline Presets**: No database fetches for preset data
+- **File Attachments**: Direct manager uploads with drag & drop interface
 
 ### Form Features
 - **Preset Selector**: Onboarding/Renewal presets when opened from Onboarding & Renewals page
 - **Property Context**: Property selector or locked property based on entry point
 - **AI Compose Integration**: Lazy-loaded AI generation for descriptions
+- **Document Upload**: Drag & drop file upload with preview and validation
 - **Success Panel**: Upload links and copy actions after creation
 - **Form Validation**: Client-side validation with clear error messages
 - **Performance Monitoring**: Built-in timing for mount, init, and submit operations
+- **Email Attachments**: Uploaded files included as email attachments
 
 ### Entry Points
 - **Onboarding & Renewals page**: Uses `RequestForm` with preset selector
-- **Property requests page**: Uses `PropertyRequestForm` wrapper
+- **Property requests page**: Uses `RequestForm` directly
 
 ## Workflow Architecture
 
@@ -306,6 +320,14 @@ Archive System:
 - **Size Limit**: 10MB per file
 - **Archive Behavior**: Files remain in storage when requests are archived
 
+### File Attachment System
+- **Manager Uploads**: Direct attachments to requests (`origin: 'request_attachment'`)
+- **Recipient Uploads**: Files linked to specific request items (`origin: 'item_upload'`)
+- **Email Integration**: Manager attachments included in notification emails
+- **Download Links**: Large files (>20MB total) provided as download links
+- **File Validation**: Server-side validation of file types and sizes
+- **Preview Support**: Image thumbnails using Next.js Image component
+
 ## Public Upload Flow
 
 1. User receives link: `/r/{upload_token}`
@@ -330,6 +352,13 @@ Archive System:
   - File type validation and size limits
   - Multi-channel notifications (email/SMS/both)
   - AI-generated message composition
+
+### Email Attachment System
+- **Manager Attachments**: Files uploaded by managers included as email attachments
+- **Size Limits**: Total attachment size limited to 20MB per email
+- **Fallback**: Large files provided as download links instead of attachments
+- **File Processing**: Server fetches files from storage and converts to email attachments
+- **Debug Logging**: Comprehensive logging for attachment processing and errors
 
 ## AI Integration
 
@@ -393,12 +422,15 @@ Archive System:
 
 ## Enhanced Features
 
-### Document Upload in Requests
+### Document Upload System
 - **Drag & Drop Interface**: Intuitive file upload with visual feedback
 - **File Validation**: Server-side validation of file types and sizes
 - **Preview Support**: Image thumbnails and file type icons using Next.js Image
 - **Storage Integration**: Direct upload to Supabase Storage
-- **Email Integration**: Uploaded files listed in notification emails
+- **Email Integration**: Uploaded files included as email attachments
+- **Two Modes**: Default mode for manager uploads, request-attachment mode for direct uploads
+- **Performance Optimized**: Memoized callbacks and lazy loading
+- **Error Handling**: Comprehensive error handling with user feedback
 
 ### Dashboard Enhancements
 - **Clickable KPI Cards**: Navigate to relevant pages from metrics
@@ -439,8 +471,14 @@ Archive System:
 ## Migration History
 
 ### Recent Migrations
-- **20250116000000**: Added `archived_at` column to requests table
+- **20250116000007**: Comprehensive RLS fix for files and activity_logs tables
+- **20250116000006**: Emergency RLS fix (temporary permissive policies)
+- **20250116000005**: Fix files RLS policies for manager access
+- **20250116000004**: Fix files table schema (add missing columns)
+- **20250116000003**: Create files storage bucket in Supabase
+- **20250116000002**: Add request attachment support to files table
 - **20250116000001**: Added index on `properties.created_at` for performance
+- **20250116000000**: Added `archived_at` column to requests table
 - **20250115000004**: Created storage bucket for file uploads
 - **20250115000003**: Cleaned HTML descriptions
 - **20250115000002**: Added public upload policy
@@ -454,6 +492,12 @@ Archive System:
 - **Memoization**: Prevented unnecessary re-renders
 - **Bundle Optimization**: Reduced JavaScript bundle sizes
 
+### File Attachment System
+- **Database Schema**: Added request_id, origin, tag, file_size, content_type columns
+- **Storage Integration**: Created files bucket with proper RLS policies
+- **Email Integration**: Files included as email attachments with size limits
+- **API Endpoints**: Enhanced upload/record endpoints for request attachments
+
 ## API Endpoints Summary
 
 ### Authentication
@@ -466,8 +510,9 @@ Archive System:
 - `/api/requests/[requestId]/delete` - Delete request
 
 ### File Management
-- `/api/upload/*` - File upload handling
+- `/api/upload/*` - File upload handling (supports request attachments)
 - `/api/files/download` - Secure file download
+- `/api/files` - DELETE endpoint for file deletion
 - `/r/[token]` - Public upload pages
 
 ### AI Integration

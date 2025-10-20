@@ -49,9 +49,18 @@ export async function sendEmail({ to, subject, html, text, attachments }: EmailO
 
     // Add attachments if provided
     if (attachments && attachments.length > 0) {
+      console.log('📎 Adding attachments to email:', attachments.length);
+      console.log('📎 Attachment details:', attachments.map(att => ({
+        filename: att.filename,
+        size: att.content.length,
+        mime: att.mime
+      })));
       emailData.attachments = attachments;
+    } else {
+      console.log('⚠️ No attachments provided to sendEmail');
     }
 
+    console.log('📧 Sending email with Resend...');
     const { data, error } = await resend.emails.send(emailData);
 
     if (error) {
@@ -138,6 +147,8 @@ export async function getRequestAttachmentsForEmail(requestId: string): Promise<
   downloadLinks: Array<{ filename: string; url: string; size: number }>;
 }> {
   try {
+    console.log('🔍 getRequestAttachmentsForEmail called for requestId:', requestId);
+    
     const { supabaseServer } = await import('./supabase/server');
     const db = await supabaseServer();
 
@@ -149,14 +160,19 @@ export async function getRequestAttachmentsForEmail(requestId: string): Promise<
       .eq('origin', 'request_attachment')
       .eq('tag', 'attachment');
 
+    console.log('📁 Files query result:', { files, error });
+
     if (error) {
       console.error('Error fetching request attachments:', error);
       return { attachments: [], downloadLinks: [] };
     }
 
     if (!files || files.length === 0) {
+      console.log('⚠️ No files found for request:', requestId);
       return { attachments: [], downloadLinks: [] };
     }
+
+    console.log('✅ Found', files.length, 'files for request:', requestId);
 
     const attachments: EmailAttachment[] = [];
     const downloadLinks: Array<{ filename: string; url: string; size: number }> = [];
@@ -164,10 +180,12 @@ export async function getRequestAttachmentsForEmail(requestId: string): Promise<
     let totalSize = 0;
 
     for (const file of files) {
+      console.log('📄 Processing file:', file.file_name, 'Size:', file.file_size, 'Path:', file.file_path);
       const fileSize = file.file_size || 0;
       
       // If adding this file would exceed the limit, add to download links instead
       if (totalSize + fileSize > maxTotalSize) {
+        console.log('⚠️ File too large, adding to download links:', file.file_name);
         const downloadUrl = await getSignedDownloadUrl(file.file_path);
         if (downloadUrl) {
           downloadLinks.push({
@@ -181,20 +199,23 @@ export async function getRequestAttachmentsForEmail(requestId: string): Promise<
 
       try {
         // Generate signed download URL
+        console.log('🔗 Generating download URL for:', file.file_name);
         const downloadUrl = await getSignedDownloadUrl(file.file_path);
         if (!downloadUrl) {
-          console.error('Failed to generate download URL for:', file.file_name);
+          console.error('❌ Failed to generate download URL for:', file.file_name);
           continue;
         }
 
+        console.log('📥 Fetching file content for:', file.file_name);
         // Fetch file content
         const response = await fetch(downloadUrl);
         if (!response.ok) {
-          console.error('Failed to fetch file:', file.file_name);
+          console.error('❌ Failed to fetch file:', file.file_name, 'Status:', response.status);
           continue;
         }
 
         const content = Buffer.from(await response.arrayBuffer());
+        console.log('✅ Successfully processed attachment:', file.file_name, 'Size:', content.length);
         
         attachments.push({
           filename: file.file_name,
@@ -204,7 +225,7 @@ export async function getRequestAttachmentsForEmail(requestId: string): Promise<
 
         totalSize += fileSize;
       } catch (error) {
-        console.error('Error processing attachment:', file.file_name, error);
+        console.error('❌ Error processing attachment:', file.file_name, error);
         // Fallback to download link
         const downloadUrl = await getSignedDownloadUrl(file.file_path);
         if (downloadUrl) {
@@ -217,9 +238,10 @@ export async function getRequestAttachmentsForEmail(requestId: string): Promise<
       }
     }
 
+    console.log('📧 Final result - Attachments:', attachments.length, 'Download links:', downloadLinks.length);
     return { attachments, downloadLinks };
   } catch (error) {
-    console.error('Error in getRequestAttachmentsForEmail:', error);
+    console.error('❌ Error in getRequestAttachmentsForEmail:', error);
     return { attachments: [], downloadLinks: [] };
   }
 }

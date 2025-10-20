@@ -324,7 +324,10 @@ export async function createRequest(data: {
               file_path: uploadData.path,
               file_size: file.size,
               file_type: file.type,
+              content_type: file.type,
               request_id: request.id,
+              origin: 'request_attachment',
+              tag: 'attachment',
               uploaded_by: user.id,
               uploaded_at: new Date().toISOString()
             })
